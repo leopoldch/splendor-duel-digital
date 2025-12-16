@@ -15,15 +15,14 @@ int main(int argc, char *argv[]) {
 	InfoDialog info_dialog("Bienvenue dans le game Splendor Duel !");
 	info_dialog.exec();
 
-	popupYesNo yesno(nullptr, "Voulez vous commencer une nouvelle partie ou "
-	                          "finir la dernière partie en cours (Oui/Non) ?");
+	popupYesNo yesno(nullptr, "Voulez vous reprendre la dernière partie en cours (Oui/Non) ?");
 	yesno.exec();
 	char tmp = yesno.getUserChoice();
 
 	if (tmp == 'Y') {
-		gameFromScratch(argc, argv);
-	} else {
 		gameFromJson(argc, argv);
+	} else {
+		gameFromScratch(argc, argv);
 	}
 
 	Game::free();
