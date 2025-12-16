@@ -531,15 +531,20 @@ void MainWindow::updateDraws() {
 
 	// Cartes royales
 	qDebug() << "CartesRoyales";
+
+	auto currentRoyalCards = Game::getGame().getRoyalCards(); 
+
 	for (int i = 0; i < 4; i++) {
-		tirages->getRoyalCards()[i]->setCard(
-		    Game::getGame().getRoyalCards()[i]);
-		// Update des visuels
-		if (i < Game::getGame().getRoyalCards().size())
+		if (i < currentRoyalCards.size()) {
+			tirages->getRoyalCards()[i]->setCard(currentRoyalCards[i]);
 			tirages->getRoyalCards()[i]->updateAppearance();
+			tirages->getRoyalCards()[i]->setEnabled(true);
+		} 
 		else {
+			tirages->getRoyalCards()[i]->setCard(nullptr);
 			tirages->getRoyalCards()[i]->setIcon(QIcon());
 			tirages->getRoyalCards()[i]->setIconSize(this->size());
+			tirages->getRoyalCards()[i]->setDisabled(true);
 		}
 	}
 
