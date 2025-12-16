@@ -55,7 +55,7 @@ MainWindow::MainWindow(QWidget *parent)
 
 	// Background pour toute la fenêtre
 	centralWidget->setStyleSheet(
-	    "background-image: url('../src/assets/rest_detoured/background.jpg'); background-position: "
+	    "background-image: url('../src/assets/background.jpg'); background-position: "
 	    "center;");
 
 	QVBoxLayout *mainLayout = new QVBoxLayout(centralWidget);
@@ -139,7 +139,7 @@ MainWindow::MainWindow(QWidget *parent)
 	middleLayout->addLayout(
 	    plateauLayout); // Rajouter le board et le bouton au middle layout
 	middleLayout->addStretch(); // Stretch pour mettre les tirages à right
-	tirages->setStyleSheet("background-image: url('../src/assets/rest_detoured/background.jpg'); "
+	tirages->setStyleSheet("background-image: url('../src/assets/background.jpg'); "
 	                       "background-position: center;");
 	middleLayout->addWidget(tirages);
 	mainLayout->addWidget(middleContainer);
@@ -252,7 +252,7 @@ void MainWindow::showJetonsBottom() {
 	QDialog *jetonsDialog = new QDialog(this);
 	setCurrentDialog(jetonsDialog);
 	jetonsDialog->setStyleSheet(
-	    "background-image: url('../src/assets/rest_detoured/background.jpg'); "
+	    "background-image: url('../src/assets/background.jpg'); "
 	    "background-position: center;");
 
 	QVBoxLayout *verticallayout = new QVBoxLayout(jetonsDialog);
@@ -302,7 +302,7 @@ void MainWindow::showJetonsBottom() {
 void MainWindow::showReservedCardsBottom() {
 	QDialog *cardsDialog = new QDialog(this);
 	cardsDialog->setStyleSheet(
-	    "background-image: url('../src/assets/rest_detoured/background.jpg'); "
+	    "background-image: url('../src/assets/background.jpg'); "
 	    "background-position: center;");
 	QGridLayout *layout = new QGridLayout(cardsDialog);
 
@@ -333,7 +333,7 @@ void MainWindow::showReservedCardsBottom() {
 void MainWindow::showBoughtCardsBottom() {
 	QDialog *cardsDialog = new QDialog(this);
 	cardsDialog->setStyleSheet(
-	    "background-image: url('../src/assets/rest_detoured/background.jpg'); "
+	    "background-image: url('../src/assets/background.jpg'); "
 	    "background-position: center;");
 	QGridLayout *layout = new QGridLayout(cardsDialog);
 
@@ -356,7 +356,7 @@ void MainWindow::showBoughtCardsBottom() {
 void MainWindow::showBoughtCardsTop() {
 	QDialog *cardsDialog = new QDialog(this);
 	cardsDialog->setStyleSheet(
-	    "background-image: url('../src/assets/rest_detoured/background.jpg'); "
+	    "background-image: url('../src/assets/background.jpg'); "
 	    "background-position: center;");
 	QGridLayout *layout = new QGridLayout(cardsDialog);
 
@@ -379,7 +379,7 @@ void MainWindow::showBoughtCardsTop() {
 void MainWindow::showJetonsTop() {
 	QDialog *jetonsDialog = new QDialog(this);
 	jetonsDialog->setStyleSheet(
-	    "background-image: url('../src/assets/rest_detoured/background.jpg'); "
+	    "background-image: url('../src/assets/background.jpg'); "
 	    "background-position: center;");
 	setCurrentDialog(jetonsDialog);
 
@@ -434,7 +434,7 @@ void MainWindow::showJetonsTop() {
 void MainWindow::showReservedCardsTop() {
 	QDialog *cardsDialog = new QDialog(this);
 	cardsDialog->setStyleSheet(
-	    "background-image: url('../src/assets/rest_detoured/background.jpg'); "
+	    "background-image: url('../src/assets/background.jpg'); "
 	    "background-position: center;");
 	QGridLayout *layout = new QGridLayout(cardsDialog);
 
