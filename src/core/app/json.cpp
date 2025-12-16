@@ -146,6 +146,7 @@ void boardFromJson(json data) {
 
 void bagFromJson(json data) {
 	if (data["tokens_in_bag_number"] != 0 && !data["tokens"].is_null()) {
+		std::cout<<"bagFromJson"<<std::endl;
 		Bag &bag = Bag::get();
 		vector<const Token *> tokens;
 
@@ -155,7 +156,8 @@ void bagFromJson(json data) {
 			bag.insertToken(tokens[i]);
 		}
 
-		bag.setAmountofToken(data["nb"]); // normalement pas besoin de reset nb
-		                                  // mais on sait jamais
+		bag.setAmountofToken(data["tokens_in_bag_number"]); 
+		// normalement pas besoin de reset nb
+		// mais on sait jamais
 	}
 }

@@ -121,15 +121,15 @@ Game::Game(json data) {
 	deck2 = &deckFromJson(data["deck2"]);
 	cout << "init deck3\n" << endl;
 	deck3 = &deckFromJson(data["deck3"]);
-
+	cout << "init draw1\n" << endl;
 	draw1 = &drawFromJson(data["draw1"], *deck1);
-
+	cout << "init draw2\n" << endl;
 	draw2 = &drawFromJson(data["draw2"], *deck2);
-
+	cout << "init draw3\n" << endl;
 	draw3 = &drawFromJson(data["draw3"], *deck3);
-
+	cout << "init bag\n" << endl;
 	bagFromJson(data["bag"]);
-
+	cout << "init board\n" << endl;
 	boardFromJson(data["board"]);
 }
 

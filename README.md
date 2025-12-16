@@ -56,8 +56,13 @@ Ensure you have the following installed:
 
     cmake ..
 
-    # Compile
     make
+    ```
+
+    Build with debug symbols: 
+
+    ```
+    cmake -DCMAKE_BUILD_TYPE=Debug ..
     ```
 
 3.  **Run the Game:**
