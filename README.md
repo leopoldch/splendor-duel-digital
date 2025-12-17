@@ -76,13 +76,6 @@ Ensure you have the following installed:
 
 ---
 
-## Overview
-
-The main interface manages the display of the board, cards, and tokens.
-*(You can add a screenshot of your game window here)*
-
----
-
 ## Authors
 
 Project created by:
