@@ -111,61 +111,46 @@ class Token {
 		case Color::red: {
 			if (red_number > 0) {
 				red_number--;
-			} else {
-				throw SplendorException("Nombre de tokens red <= 0!");
 			}
 			break;
 		}
 		case Color::blue: {
 			if (blue_number > 0) {
 				blue_number--;
-			} else {
-				throw SplendorException("Nombre de tokens blue <= 0!");
 			}
 			break;
 		}
 		case Color::green: {
 			if (green_number > 0) {
 				green_number--;
-			} else {
-				throw SplendorException("Nombre de tokens green <= 0!");
 			}
 			break;
 		}
 		case Color::white: {
 			if (white_number > 0) {
 				white_number--;
-			} else {
-				throw SplendorException("Nombre de tokens white <= 0!");
 			}
 			break;
 		}
 		case Color::black: {
 			if (black_number > 0) {
 				black_number--;
-			} else {
-				throw SplendorException("Nombre de tokens black <= 0!");
 			}
 			break;
 		}
 		case Color::perl: {
 			if (perl_number > 0) {
 				perl_number--;
-			} else {
-				throw SplendorException("Nombre de tokens  <= 0!");
 			}
 			break;
 		}
 		case Color::gold: {
 			if (gold_number > 0) {
 				gold_number--;
-			} else {
-				throw SplendorException("Nombre de tokens green <= 0!");
 			}
 			break;
 		}
 		default: {
-			throw SplendorException("Color de tokens inconnue");
 			break;
 		}
 		}
