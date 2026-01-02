@@ -44,9 +44,9 @@ std::ostream &operator<<(std::ostream &f, Color c);
 std::ostream &operator<<(std::ostream &f, optional<Capacity> c);
 std::ostream &operator<<(ostream &f, optional<colorBonus> b);
 
-extern std::initializer_list<Color> Colors;
-extern std::initializer_list<Capacity> Capacities;
-extern std::initializer_list<colorBonus> ColorBonuses;
+extern const std::initializer_list<Color> Colors;
+extern const std::initializer_list<Capacity> Capacities;
+extern const std::initializer_list<colorBonus> ColorBonuses;
 
 class Card {
 

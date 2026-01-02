@@ -58,6 +58,7 @@ std ::string toString(optional<enum colorBonus> bonus) {
 		} else if (bonus == colorBonus::joker) {
 			return "Bonus Joker";
 		}
+		return "Unknown Bonus";
 	} else {
 		return "Null";
 	}
@@ -97,6 +98,7 @@ std::string toStringJson(optional<Capacity> c) {
 		} else if (c == Capacity::joker) {
 			return "joker";
 		}
+		return "unknown";
 	} else {
 		return "null";
 	}
@@ -117,6 +119,7 @@ std ::string toStringJson(optional<enum colorBonus> bonus) {
 		} else if (bonus == colorBonus::joker) {
 			return "joker";
 		}
+		return "unknown";
 	} else {
 		return "null";
 	}
@@ -138,14 +141,14 @@ std::ostream &operator<<(ostream &f, optional<enum colorBonus> b) {
 	return f;
 }
 
-extern std::initializer_list<Color> Colors = {
+const std::initializer_list<Color> Colors = {
     Color::red, Color::blue, Color::green, Color::white, Color::black};
 
-extern std::initializer_list<Capacity> Capacities = {
+const std::initializer_list<Capacity> Capacities = {
     Capacity::replay, Capacity::steal_opponent_pawn, Capacity::take_priviledge,
     Capacity::take_on_board, Capacity::joker};
 
-extern std::initializer_list<enum colorBonus> Color_bonus = {
+const std::initializer_list<enum colorBonus> Color_bonus = {
     colorBonus::blue,  colorBonus::red,   colorBonus::green,
     colorBonus::white, colorBonus::black, colorBonus::joker};
 

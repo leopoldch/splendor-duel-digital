@@ -18,7 +18,7 @@ enum class Position {
 	below,
 	diag_lower_right
 };
-extern std::initializer_list<Position> Positions;
+extern const std::initializer_list<Position> Positions;
 
 optional<Position> invertPositions(const optional<Position> &pos);
 std::string toString(optional<Position> &pos);

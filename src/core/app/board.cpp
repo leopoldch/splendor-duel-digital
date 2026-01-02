@@ -60,6 +60,7 @@ std::string toString(optional<Position> &pos) {
 	if (pos == nullopt) {
 		return "not a side!";
 	}
+	return "unknown";
 }
 
 Board::BoardHandler Board::board_handler;
@@ -108,7 +109,7 @@ void Board::fill(Bag &bag) {
 	}
 }
 
-extern std::initializer_list<Position> Positions = {
+const std::initializer_list<Position> Positions = {
     Position::right, Position::diag_upper_right,
     Position::above, Position::diag_upper_left,
     Position::left,  Position::diag_lower_left,
