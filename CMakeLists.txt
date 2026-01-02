@@ -62,3 +62,32 @@ target_link_libraries(lo21-splendor-duel PRIVATE
   Qt6::Core
   nlohmann_json::nlohmann_json
 )
+
+# Google Test setup
+option(BUILD_TESTS "Build tests" ON)
+
+if(BUILD_TESTS)
+  enable_testing()
+
+  FetchContent_Declare(googletest
+    URL https://github.com/google/googletest/archive/release-1.12.1.tar.gz
+    DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+  )
+
+  # For Windows: Prevent overriding the parent project's compiler/linker settings
+  set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
+
+  FetchContent_MakeAvailable(googletest)
+
+  include(GoogleTest)
+
+  add_executable(lo21-splendor-duel-tests
+    test/sample_test.cpp
+  )
+
+  target_link_libraries(lo21-splendor-duel-tests PRIVATE
+    GTest::gtest_main
+  )
+
+  gtest_discover_tests(lo21-splendor-duel-tests)
+endif()
