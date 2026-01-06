@@ -28,6 +28,7 @@ The main objective is to provide a robust implementation that respects OOP princ
 * **Build System:** CMake (Min. version 3.16)
 * **External Dependencies:**
     * [nlohmann/json](https://github.com/nlohmann/json) for serialization (automatically downloaded via CMake FetchContent).
+    * [google/googletest](https://github.com/google/googletest) for testing (automatically downloaded via CMake FetchContent).
 
 ---
 
