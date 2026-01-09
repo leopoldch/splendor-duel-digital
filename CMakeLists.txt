@@ -30,6 +30,10 @@ file(GLOB_RECURSE PROJECT_SOURCES CONFIGURE_DEPENDS
   "${CMAKE_SOURCE_DIR}/src/*.h"
 )
 
+file(GLOB_RECURSE PROJECT_TESTS CONFIGURE_DEPENDS
+  "${CMAKE_SOURCE_DIR}/test/*.cpp"
+)
+
 add_executable(lo21-splendor-duel
   main.cpp
   main.h
@@ -82,11 +86,20 @@ if(BUILD_TESTS)
   include(GoogleTest)
 
   add_executable(lo21-splendor-duel-tests
-    test/sample_test.cpp
+    ${PROJECT_SOURCES}
+    ${PROJECT_TESTS}
+  )
+
+  target_include_directories(lo21-splendor-duel-tests PRIVATE
+    "${CMAKE_SOURCE_DIR}/src"
+    "${CMAKE_SOURCE_DIR}/src/Qt/headers"
+    "${CMAKE_SOURCE_DIR}/src/core/headers"
   )
 
   target_link_libraries(lo21-splendor-duel-tests PRIVATE
     GTest::gtest_main
+    nlohmann_json::nlohmann_json
+    Qt6::Widgets
   )
 
   gtest_discover_tests(lo21-splendor-duel-tests)
