@@ -7,7 +7,7 @@ on:
       - main
 
 jobs:
-  execute_backend_tests:
+  splendor_tests:
     runs-on: ubuntu-latest
 
     steps:
