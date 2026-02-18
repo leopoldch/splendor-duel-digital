@@ -14,6 +14,22 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Install dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y build-essential libgl1-mesa-dev
+
+      - name: Install Qt
+        uses: jurplel/install-qt-action@v4
+        with:
+          version: '6.8.1'
+          host: 'linux'
+          target: 'desktop'
+          install-deps: 'true'
+
+      - name: Compile project
+        run: mkdir build && cd build && cmake .. && make
+
       - name: Compile project
         run: mkdir build && cd build && cmake .. && make
 
