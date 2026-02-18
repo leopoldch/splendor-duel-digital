@@ -4,19 +4,19 @@
 #include <QLabel>
 #include <string>
 
-popupCouleur::popupCouleur(QWidget *parent) : QDialog(parent) {
+ColorPopup::ColorPopup(QWidget *parent) : QDialog(parent) {
 
-	QLabel *typeLabel = new QLabel("Couleur :", this);
+	QLabel *typeLabel = new QLabel("Color:", this);
 	comboBox = new QComboBox(this);
 
 	comboBox->addItem("White");
 	comboBox->addItem("Blue");
 	comboBox->addItem("Black");
-	comboBox->addItem("Perle");
+	comboBox->addItem("Pearl");
 	comboBox->addItem("Red");
 	comboBox->addItem("Green");
 
-	QLabel *nombreLabel = new QLabel("Nombre :", this);
+	QLabel *amountLabel = new QLabel("Amount:", this);
 	comboBoxNb = new QComboBox(this);
 	for (int i = 1;
 	     i <= Game::getGame().getCurrentPlayer().TokenAmount(Color::gold);
@@ -31,17 +31,17 @@ popupCouleur::popupCouleur(QWidget *parent) : QDialog(parent) {
 	layout->addWidget(comboBoxNb);
 	layout->addWidget(comboBox);
 
-	setWindowTitle("Choix couleur");
+	setWindowTitle("Color choice");
 
 	connect(submitButton, &QPushButton::clicked, this,
-	        &popupCouleur::onSubmitClicked);
+	        &ColorPopup::onSubmitClicked);
 }
 
-void popupCouleur::onSubmitClicked() {
+void ColorPopup::onSubmitClicked() {
 	std::string nb_string = comboBoxNb->currentText().toStdString();
-	std::string coul = comboBox->currentText().toStdString();
+	std::string colorStr = comboBox->currentText().toStdString();
 
-	setColor(stringToColor(coul));
+	setColor(stringToColor(colorStr));
 	setNb(std::stoi(nb_string));
 
 	accept();

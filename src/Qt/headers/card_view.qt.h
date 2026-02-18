@@ -11,24 +11,24 @@
 #include <QString>
 #include <QWidget>
 
-class Qt_carte : public QPushButton {
+class Qt_card : public QPushButton {
 	Q_OBJECT
 
   private:
-	bool isClicked; // Track si la card a été click
+	bool isClicked; // Track if the card was clicked
 	const Card *card;
 	QPixmap m_image;
-	int indice_dans_tirage;
-	bool est_reservee;
+	int index_in_draw;
+	bool is_reserved;
 
   public:
-	const int getIndex() const { return indice_dans_tirage; }
-	void setIndice(int x) { indice_dans_tirage = x; }
+	const int getIndex() const { return index_in_draw; }
+	void setIndice(int x) { index_in_draw = x; }
 
-	const bool getReserved() const { return est_reservee; }
-	void setReservee(bool x) { est_reservee = x; }
+	const bool getReserved() const { return is_reserved; }
+	void setReserved(bool x) { is_reserved = x; }
 
-	explicit Qt_carte(QWidget *parent = nullptr);
+	explicit Qt_card(QWidget *parent = nullptr);
 
 	void toggleClicked();
 	void updateAppearance();
@@ -41,10 +41,10 @@ class Qt_carte : public QPushButton {
 	void paintEvent(QPaintEvent *event) override;
 
   signals:
-	void carteClicked(Qt_carte *c);
+	void cardClicked(Qt_card *c);
 
   public slots:
-	void clickedEvent() { emit carteClicked(this); }
+	void clickedEvent() { emit cardClicked(this); }
 };
 
 #endif // QT_VUE_CARTE_H

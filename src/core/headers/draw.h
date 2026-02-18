@@ -1,5 +1,5 @@
-#ifndef LO21_SPLENDOR_DUEL_TIRAGE_H
-#define LO21_SPLENDOR_DUEL_TIRAGE_H
+#ifndef LO21_SPLENDOR_DUEL_DRAW_H
+#define LO21_SPLENDOR_DUEL_DRAW_H
 #include "Exception.h"
 #include "card.h"
 #include "deck.h"
@@ -10,8 +10,8 @@ using namespace std;
 
 class Draw {
 
-	static const int max_draw_amount = 3; // limite de draw
-	static int draw_count;                // compteur
+	static const int max_draw_amount = 3; // draw limit
+	static int draw_count;                // counter
 	Deck &deck;
 	const int level;
 	int cards_number;
@@ -33,40 +33,39 @@ class Draw {
 		return j;
 	}
 
-	// constructeur du draw
+	// draw constructor
 	Draw(int level, int max_cards, Deck &deck)
 	    : level(level), max_cards(max_cards), deck(deck) {
 		if (deck.getLevel() != level) {
 			throw SplendorException(
-			    "La deck n'est pas du même level que le draw !");
+			    "The deck is not the same level as the draw!");
 		} else if (draw_count == max_draw_amount) {
-			throw SplendorException("Nombre maximum de tirages dépassé !");
+			throw SplendorException("Maximum number of draws exceeded!");
 		}
 
-		cards_number = 0; // on initialise le nombre de cards à 0
+		cards_number = 0; // initialize the number of cards to 0
 		draw_count++;
 	}
 
 	~Draw() { draw_count--; }
 
-	// définition des getters
+	// getters definition
 	const int getLevel() const { return level; }
 	const int getCardsNumber() const { return cards_number; }
-	void setNbCartes(int nb) { cards_number = nb; }
+	void setCardCount(int nb) { cards_number = nb; }
 
 	Deck &getDeck() const { return deck; }
-	vector<const JewelryCard *> &getTirage() { return cards; }
+	vector<const JewelryCard *> &getDrawCards() { return cards; }
 
-	void setTirage(vector<const JewelryCard *> draw) { cards = draw; }
+	void setDrawCards(vector<const JewelryCard *> draw) { cards = draw; }
 
-	// déclaration de la méthode qui permet de remplir le Draw avec les cards
-	// (voir draw.cpp)
+	// declaration of the method to fill the Draw with cards (see draw.cpp)
 	void fill();
 
 	const JewelryCard &getCard(unsigned int index) {
 
 		if (cards_number == 0) {
-			throw SplendorException("Attention pas de cards dans le draw !");
+			throw SplendorException("Warning: no cards in the draw!");
 		}
 
 		const JewelryCard *return_card = cards[index];
@@ -78,7 +77,7 @@ class Draw {
 
 	const JewelryCard &getCardWithoutDeletion(unsigned int index) {
 		if (cards_number == 0) {
-			throw SplendorException("Attention pas de cards dans le draw !");
+			throw SplendorException("Warning: no cards in the draw!");
 		}
 		return *cards[index];
 	}
@@ -88,16 +87,16 @@ class Draw {
 	Draw(const Draw &draw) = delete;
 };
 
-// surchage de l'opérateur pour print sur la sortie standard le draw
+// operator overload to print the draw to standard output
 inline std::ostream &operator<<(std::ostream &f, Draw &draw) {
 	int i = 0;
-	for (const JewelryCard *c : draw.getTirage()) {
+	for (const JewelryCard *c : draw.getDrawCards()) {
 		f << "index : " << i << " card : " << *c << endl;
 		i++;
 	}
 	return f;
 }
 
-void testTirage();
+void testDraw();
 
-#endif // LO21_SPLENDOR_DUEL_TIRAGE_H
+#endif // LO21_SPLENDOR_DUEL_DRAW_H

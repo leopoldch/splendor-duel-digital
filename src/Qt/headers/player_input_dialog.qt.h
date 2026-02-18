@@ -23,8 +23,8 @@ class PlayerInputDialog : public QDialog {
   private:
 	QLineEdit *name1Edit;
 	QLineEdit *name2Edit;
-	QLineEdit *choix1Edit;
-	QLineEdit *choix2Edit;
+	QLineEdit *choice1Edit;
+	QLineEdit *choice2Edit;
 	QPushButton *submitButton;
 	QPushButton *cancelButton;
 };

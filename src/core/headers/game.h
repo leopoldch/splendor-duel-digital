@@ -1,5 +1,5 @@
-#ifndef LO21_SPLENDOR_DUEL_JEU_H
-#define LO21_SPLENDOR_DUEL_JEU_H
+#ifndef LO21_SPLENDOR_DUEL_GAME_H
+#define LO21_SPLENDOR_DUEL_GAME_H
 #include "json.h"
 #include <iostream>
 class StrategyPlayer;
@@ -41,7 +41,7 @@ class Game {
   public:
 	json toJson() const;
 
-	// Initialiser les noms des joueurs
+	// Initialize player names
 	void setPlayers(string &name1, string &name2, string &user_player_choice1,
 	                string &user_player_choice2); // version Qt
 	void setPlayers();
@@ -59,7 +59,7 @@ class Game {
 
 	const RoyalCard &drawRoyalCard(unsigned int i) {
 		if (i > royal_cards.size() || i < 0)
-			throw SplendorException("Indice non valide ! ");
+			throw SplendorException("Invalid index!");
 		const RoyalCard *tmp = royal_cards[i];
 		royal_cards.erase(royal_cards.begin() + i);
 		return *tmp;
@@ -69,7 +69,7 @@ class Game {
 
 	const Privilege *getPrivilege() {
 		if (privileges.size() <= 0) {
-			throw SplendorException("Plus de privilège disponible");
+			throw SplendorException("No more privileges available");
 		}
 		const Privilege *tmp = privileges[0];
 		privileges.erase(privileges.begin());
@@ -90,7 +90,7 @@ class Game {
 	void setPrivilege(const Privilege &p) {
 		if (privileges.size() >= 3) {
 			throw SplendorException(
-			    "Nombre de privilège max dans le game déjà atteint");
+			    "Maximum number of privileges in the game already reached");
 		}
 		privileges.push_back(&p);
 	}
@@ -115,7 +115,7 @@ class Game {
 			return draw3;
 			break;
 		default:
-			throw SplendorException("Le draw demandé n'existe pas!");
+			throw SplendorException("The requested draw does not exist!");
 		}
 	}
 	void nextRound(bool replay = 0);
@@ -131,4 +131,4 @@ class Game {
 	unsigned int getRoundCount() { return round; }
 };
 
-#endif // LO21_SPLENDOR_DUEL_JEU_H
+#endif // LO21_SPLENDOR_DUEL_GAME_H

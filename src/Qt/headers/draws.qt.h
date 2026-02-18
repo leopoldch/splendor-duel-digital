@@ -1,5 +1,5 @@
-#ifndef QT_TIRAGES_H
-#define QT_TIRAGES_H
+#ifndef QT_DRAWS_H
+#define QT_DRAWS_H
 
 #include "card_view.qt.h"
 #include <QHBoxLayout>
@@ -7,21 +7,21 @@
 #include <QVector>
 #include <QWidget>
 
-class Qt_Tirages : public QWidget {
+class Qt_Draws : public QWidget {
 	Q_OBJECT
 
   public:
-	explicit Qt_Tirages(QWidget *parent = nullptr);
-	std::vector<Qt_carte *> &getTier1() { return tier1Cards; }
-	std::vector<Qt_carte *> &getTier2() { return tier2Cards; }
-	std::vector<Qt_carte *> &getTier3() { return tier3Cards; }
-	std::vector<Qt_carte *> &getRoyalCards() { return royalCards; }
+	explicit Qt_Draws(QWidget *parent = nullptr);
+	std::vector<Qt_card *> &getTier1() { return tier1Cards; }
+	std::vector<Qt_card *> &getTier2() { return tier2Cards; }
+	std::vector<Qt_card *> &getTier3() { return tier3Cards; }
+	std::vector<Qt_card *> &getRoyalCards() { return royalCards; }
 
-	Qt_carte *getDeck1() { return deck1; }
-	Qt_carte *getDeck2() { return deck2; }
-	Qt_carte *getDeck3() { return deck3; }
+	Qt_card *getDeck1() { return deck1; }
+	Qt_card *getDeck2() { return deck2; }
+	Qt_card *getDeck3() { return deck3; }
 
-	void connectCartes();
+	void connectCards();
 
   private:
 	QHBoxLayout *tier1Layout;
@@ -29,19 +29,19 @@ class Qt_Tirages : public QWidget {
 	QHBoxLayout *tier3Layout;
 	QHBoxLayout *royalLayout;
 
-	std::vector<Qt_carte *> tier1Cards;
-	std::vector<Qt_carte *> tier2Cards;
-	std::vector<Qt_carte *> tier3Cards;
-	std::vector<Qt_carte *> royalCards;
+	std::vector<Qt_card *> tier1Cards;
+	std::vector<Qt_card *> tier2Cards;
+	std::vector<Qt_card *> tier3Cards;
+	std::vector<Qt_card *> royalCards;
 
-	Qt_carte *deck1;
-	Qt_carte *deck2;
-	Qt_carte *deck3;
+	Qt_card *deck1;
+	Qt_card *deck2;
+	Qt_card *deck3;
 
-	Qt_carte *royalCardsImage;
+	Qt_card *royalCardsImage;
 
-	void setupTierLayout(QHBoxLayout *&layout, std::vector<Qt_carte *> &cards,
-	                     int cardCount, Qt_carte *deckImage);
+	void setupTierLayout(QHBoxLayout *&layout, std::vector<Qt_card *> &cards,
+	                     int cardCount, Qt_card *deckImage);
 
   signals:
 	void clicked();
@@ -50,4 +50,4 @@ class Qt_Tirages : public QWidget {
 	void mousePressEvent(QMouseEvent *event) override { emit clicked(); }
 };
 
-#endif // QT_TIRAGES_H
+#endif // QT_DRAWS_H

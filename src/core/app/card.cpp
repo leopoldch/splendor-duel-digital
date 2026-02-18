@@ -15,11 +15,11 @@ std::string toString(Color c) {
 	case Color::black:
 		return "Black";
 	case Color::perl:
-		return "Perle";
+		return "Pearl";
 	case Color::gold:
 		return "Gold";
 	default:
-		throw SplendorException("Color inconnue");
+		throw SplendorException("Unknown color");
 	}
 }
 std::string toString(optional<Capacity> c) {
@@ -81,7 +81,7 @@ std::string toStringJson(Color c) {
 	case Color::gold:
 		return "gold";
 	default:
-		throw SplendorException("Unkown Color");
+		throw SplendorException("Unknown color");
 	}
 }
 
@@ -166,7 +166,7 @@ optional<enum colorBonus> getBonusFromString(const std::string &str) {
 	}
 }
 
-std::map<std::string, Capacity> capaciteMap = {
+std::map<std::string, Capacity> capacityMap = {
     {"replay", Capacity::replay},
     {"steal_opponent_pawn", Capacity::steal_opponent_pawn},
     {"take_priviledge", Capacity::take_priviledge},
@@ -174,8 +174,8 @@ std::map<std::string, Capacity> capaciteMap = {
     {"joker", Capacity::joker}};
 
 optional<Capacity> getCapacityFromString(const std::string &str) {
-	auto it = capaciteMap.find(str);
-	if (it != capaciteMap.end()) {
+	auto it = capacityMap.find(str);
+	if (it != capacityMap.end()) {
 		return it->second;
 	} else {
 		return nullopt;
@@ -338,19 +338,19 @@ void testInitCards() {
 	cout << "\n" << Card::getCardsNumber() << endl;
 }
 
-const Color colorBonusToColor(const optional<colorBonus> &couleur) {
-	if (couleur == colorBonus::red)
+const Color colorBonusToColor(const optional<colorBonus> &color) {
+	if (color == colorBonus::red)
 		return Color::red;
-	if (couleur == colorBonus::green)
+	if (color == colorBonus::green)
 		return Color::green;
-	if (couleur == colorBonus::blue)
+	if (color == colorBonus::blue)
 		return Color::blue;
-	if (couleur == colorBonus::white)
+	if (color == colorBonus::white)
 		return Color::white;
-	if (couleur == colorBonus::black)
+	if (color == colorBonus::black)
 		return Color::black;
 	else
-		throw SplendorException("Bonus couleur inconnu!");
+		throw SplendorException("Unknown bonus color!");
 }
 
 const colorBonus stringToBonus(const std::string &str) {
@@ -365,5 +365,5 @@ const colorBonus stringToBonus(const std::string &str) {
 	if (str == "Black")
 		return colorBonus::black;
 	else
-		throw SplendorException("Str Bonus couleur inconnu!");
+		throw SplendorException("Unknown bonus color string!");
 }

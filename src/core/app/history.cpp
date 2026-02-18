@@ -14,12 +14,12 @@ StrategyPlayer &fromJsonStrategyPLayer(json data) {
 			player->setPoints(data["points_number"]);
 			player->setPrivilegeNumber(data["privilege_number"]);
 			player->setRandomPlayer(data["is_ia"]);
-			player->setNbJetons(data["token_number"]);
+			player->setNbTokens(data["token_number"]);
 			player->setNbRCards(data["royal_cards_number"]);
 			player->setNbJCards(data["jewelry_cards_number"]);
 			player->setNbJCardsReserved(data["reserved_jewelry_cards_number"]);
 
-			player->setJetons(tokensFromJson(data["tokens"]));
+			player->setTokens(tokensFromJson(data["tokens"]));
 			player->setJewellryCard(
 			    jewelryCardFromJson(data["bought_jewelry_cards"]));
 			player->setJewellryCardReserved(
@@ -34,12 +34,12 @@ StrategyPlayer &fromJsonStrategyPLayer(json data) {
 			player->setPoints(data["points_number"]);
 			player->setPrivilegeNumber(data["privilege_number"]);
 			player->setRandomPlayer(data["is_ia"]);
-			player->setNbJetons(data["token_number"]);
+			player->setNbTokens(data["token_number"]);
 			player->setNbRCards(data["royal_cards_number"]);
 			player->setNbJCards(data["jewelry_cards_number"]);
 			player->setNbJCardsReserved(data["reserved_jewelry_cards_number"]);
 
-			player->setJetons(tokensFromJson(data["tokens"]));
+			player->setTokens(tokensFromJson(data["tokens"]));
 			player->setJewellryCard(
 			    jewelryCardFromJson(data["bought_jewelry_cards"]));
 			player->setJewellryCardReserved(
@@ -58,12 +58,12 @@ StrategyPlayer &fromJsonStrategyPLayer(json data) {
 			player->setPoints(data["points_number"]);
 			player->setPrivilegeNumber(data["privilege_number"]);
 			player->setRandomPlayer(data["is_ia"]);
-			player->setNbJetons(data["token_number"]);
+			player->setNbTokens(data["token_number"]);
 			player->setNbRCards(data["royal_cards_number"]);
 			player->setNbJCards(data["jewelry_cards_number"]);
 			player->setNbJCardsReserved(data["reserved_jewelry_cards_number"]);
 
-			player->setJetons(tokensFromJson(data["tokens"]));
+			player->setTokens(tokensFromJson(data["tokens"]));
 			player->setJewellryCard(
 			    jewelryCardFromJson(data["bought_jewelry_cards"]));
 			player->setJewellryCardReserved(
@@ -78,12 +78,12 @@ StrategyPlayer &fromJsonStrategyPLayer(json data) {
 			player->setPoints(data["points_number"]);
 			player->setPrivilegeNumber(data["privilege_number"]);
 			player->setRandomPlayer(data["is_ia"]);
-			player->setNbJetons(data["token_number"]);
+			player->setNbTokens(data["token_number"]);
 			player->setNbRCards(data["royal_cards_number"]);
 			player->setNbJCards(data["jewelry_cards_number"]);
 			player->setNbJCardsReserved(data["reserved_jewelry_cards_number"]);
 
-			player->setJetons(tokensFromJson(data["tokens"]));
+			player->setTokens(tokensFromJson(data["tokens"]));
 			player->setJewellryCard(
 			    jewelryCardFromJson(data["bought_jewelry_cards"]));
 			player->setJewellryCardReserved(
@@ -97,6 +97,7 @@ StrategyPlayer &fromJsonStrategyPLayer(json data) {
 }
 
 Game::Game(json data) {
+	Token::resetCounters();
 
 	is_finished = data["is_finished"];
 	cout << "init j1\n" << endl;
@@ -131,6 +132,21 @@ Game::Game(json data) {
 	bagFromJson(data["bag"]);
 	cout << "init board\n" << endl;
 	boardFromJson(data["board"]);
+
+	// Collect all token pointers for ownership (so ~Game deletes them)
+	for (const auto* tok : who_plays->getToken()) {
+		if (tok) tokens.push_back(tok);
+	}
+	for (const auto* tok : opponent->getToken()) {
+		if (tok) tokens.push_back(tok);
+	}
+	for (int i = 0; i < Token::getMaxTokenNumber(); i++) {
+		const Token* tok = Board::getBoard().getBoardCaseByIndex(i);
+		if (tok) tokens.push_back(tok);
+	}
+	for (int i = 0; i < Bag::get().getTokenNumber(); i++) {
+		tokens.push_back(Bag::get().getTokenByIndex(i));
+	}
 }
 
 Match::Match(json data) {
@@ -194,10 +210,10 @@ Match::Match(json data) {
 
 void Hist() {
 
-	json j1; // on récup l'ancien historique
+	json j1; // retrieve the old history
 	int tmp = 0;
 
-	// on ajoute le nouveau
+	// add the new one
 	json jtmp = History::getHistory().toHistory();
 	cout << History::getHistory().getSize() << endl;
 
@@ -243,7 +259,7 @@ void Game::setPlayers(string &name1, string &name2, string &user_player_choice1,
 		user_player_choice2 = "J";
 
 	srand(static_cast<unsigned>(std::time(nullptr)));
-	if (rand() % 2 == 0) { // player qui débute la partie est tiré aléatoirement
+	if (rand() % 2 == 0) { // player who starts the game is randomly chosen
 		if (user_player_choice1 == "J") {
 			if (History::getHistory().inHistory(name1, 0)) {
 				who_plays = History::getHistory().pullPlayer(name1, 0);
@@ -312,6 +328,6 @@ void Game::setPlayers(string &name1, string &name2, string &user_player_choice1,
 			}
 		}
 	}
-	opponent->obtainPrivilege(); // Le player qui ne commence pas démarre avec
-	                             // un privilège
+	opponent->obtainPrivilege(); // The player who doesn't start begins with
+	                             // a privilege
 }

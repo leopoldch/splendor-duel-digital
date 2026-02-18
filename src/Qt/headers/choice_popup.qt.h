@@ -18,36 +18,36 @@ class ChoiceDialog : public QDialog {
 	ChoiceDialog(int nb_choice, QWidget *parent = nullptr) : QDialog(parent) {
 		QVBoxLayout *layout = new QVBoxLayout(this);
 
-		QLabel *text = new QLabel("Choix");
+		QLabel *text = new QLabel("Choice");
 		text->setAlignment(Qt::AlignCenter);
 		layout->addWidget(text);
 
 		// Display options based on nb_choice
 		int i = 1;
 		if (nb_choice % 2 == 1) {
-			QPushButton *btn = new QPushButton("Utiliser un privilège", this);
+			QPushButton *btn = new QPushButton("Use a privilege", this);
 			connect(btn, &QPushButton::clicked, this,
 			        [this, i]() { onChoiceMade(i); });
 			layout->addWidget(btn);
 			i++;
 		}
 		if (nb_choice >= 2) {
-			QPushButton *btn = new QPushButton("Remplir le board", this);
+			QPushButton *btn = new QPushButton("Fill the board", this);
 			connect(btn, &QPushButton::clicked, this,
 			        [this, i]() { onChoiceMade(i); });
 			layout->addWidget(btn);
 			i++;
 		}
 
-		// Actions optionnelles
+		// Optional actions
 		QPushButton *takeTokensBtn =
-		    new QPushButton("Prendre des tokens", this);
+		    new QPushButton("Take tokens", this);
 		connect(takeTokensBtn, &QPushButton::clicked, this,
 		        [this, i]() { onChoiceMade(i); });
 		layout->addWidget(takeTokensBtn);
 		i++;
 
-		QPushButton *buyCardBtn = new QPushButton("Acheter une card", this);
+		QPushButton *buyCardBtn = new QPushButton("Buy a card", this);
 		connect(buyCardBtn, &QPushButton::clicked, this,
 		        [this, i]() { onChoiceMade(i); });
 		layout->addWidget(buyCardBtn);

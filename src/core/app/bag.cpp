@@ -14,8 +14,8 @@ void Bag::free() {
 	bag_handler.instance = nullptr;
 }
 
-void Bag::insertToken(const Token *jet) {
-	tokens.push_back(jet);
+void Bag::insertToken(const Token *tok) {
+	tokens.push_back(tok);
 	tokens_in_bag_number++;
 }
 

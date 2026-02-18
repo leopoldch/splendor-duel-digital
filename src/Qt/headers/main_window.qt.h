@@ -41,28 +41,28 @@ class MainWindow : public QMainWindow {
 	QLCDNumber *bottomScoreDisplay;
 
 	QPushButton *viewCardsButtonBottom;
-	QPushButton *viewJetonsButtonBottom;
+	QPushButton *viewTokensButtonBottom;
 	QPushButton *viewReservedCardsButtonBottom;
 
 	QPushButton *viewCardsButtonTop;
-	QPushButton *viewJetonsButtonTop;
+	QPushButton *viewTokensButtonTop;
 	QPushButton *viewReservedCardsButtonTop;
 
 	QLabel *topPlayerNameLabel;
 	QLabel *bottomPlayerNameLabel;
 
-	QEventLoop wait_for_action_jeton;
-	QEventLoop wait_for_action_carte;
+	QEventLoop wait_for_action_token;
+	QEventLoop wait_for_action_card;
 
-	Qt_Plateau *board;
-	Qt_Tirages *tirages;
+	Qt_Board *board;
+	Qt_Draws *draws;
 
-	QLabel *quijoue;
+	QLabel *whoPlays;
 
 	Game *game;
 
 	bool buyingCard;
-	bool stealingJeton;
+	bool stealingToken;
 
 	struct Handler {
 		MainWindow *instance = nullptr;
@@ -79,8 +79,8 @@ class MainWindow : public QMainWindow {
 	MainWindow(const MainWindow &) = delete;
 	MainWindow &operator=(const MainWindow &) = delete;
 
-	int indice_jeton_click;
-	Qt_carte *derniere_carte_click;
+	int token_click_index;
+	Qt_card *last_card_click;
 
 	bool discarding;
 
@@ -99,22 +99,22 @@ class MainWindow : public QMainWindow {
 	void setBuyingCard(bool x) { buyingCard = x; }
 	const bool getBuyingCard() { return buyingCard; }
 
-	void setStealingJeton(bool x) { stealingJeton = x; }
-	const bool getStealingJeton() { return stealingJeton; }
+	void setStealingToken(bool x) { stealingToken = x; }
+	const bool getStealingToken() { return stealingToken; }
 
-	void updateQuiJoue();
+	void updateWhoPlays();
 
-	QEventLoop *getCarteWaitLoop() { return &wait_for_action_carte; }
-	QEventLoop *getJetonWaitLoop() { return &wait_for_action_jeton; }
+	QEventLoop *getCardWaitLoop() { return &wait_for_action_card; }
+	QEventLoop *getTokenWaitLoop() { return &wait_for_action_token; }
 
-	int getTokenIndexOnClick() const { return indice_jeton_click; }
-	void setIndiceJetonClick(int x) { indice_jeton_click = x; }
+	int getTokenIndexOnClick() const { return token_click_index; }
+	void setTokenClickIndex(int x) { token_click_index = x; }
 
-	Qt_carte *getLastCardClicked() const { return derniere_carte_click; }
-	void setDerniereCarteClick(Qt_carte *c) { derniere_carte_click = c; }
+	Qt_card *getLastCardClicked() const { return last_card_click; }
+	void setLastCardClick(Qt_card *c) { last_card_click = c; }
 
-	void updateTopScore(int score); // Méthode de mise à jour du score du haut
-	void updateBottomScore(int score); //  -- du bas
+	void updateTopScore(int score); // Method to update top score
+	void updateBottomScore(int score); // -- bottom score
 
 	void updateScores() {
 		int s1 = Game::getGame().getCurrentPlayer().getNbPoints();
@@ -123,7 +123,7 @@ class MainWindow : public QMainWindow {
 		topScoreDisplay->display(s2);
 	}
 
-	void demanderNoms() {
+	void askNames() {
 
 		InputPopup *popup = new InputPopup(this);
 		popup->setModal(true);
@@ -154,9 +154,9 @@ class MainWindow : public QMainWindow {
 	void activateForBuy();
 	void activateForRoyalCard();
 
-	Qt_Tirages *getTirages() const { return tirages; }
+	Qt_Draws *getDraws() const { return draws; }
 
-	void activateJetonColor(const Color &c);
+	void activateTokenColor(const Color &c);
 
 	void acceptCurrentDialog() {
 		if (current_dialog != nullptr) {
@@ -170,11 +170,11 @@ class MainWindow : public QMainWindow {
   private slots:
 	void showBoughtCardsTop();
 	void showReservedCardsTop();
-	void showJetonsTop();
+	void showTokensTop();
 
 	void showBoughtCardsBottom();
 	void showReservedCardsBottom();
-	void showJetonsBottom();
+	void showTokensBottom();
 
 	void YesNo(char *choice, const std::string &string);
 	void fillBoard();
@@ -187,8 +187,8 @@ class MainWindow : public QMainWindow {
 	void showStatsPlayers();
 
   public slots:
-	void jetonClicked(Qt_jeton *);
-	void carteClicked(Qt_carte *);
+	void tokenClicked(Qt_token *);
+	void cardClicked(Qt_card *);
 
   signals:
 	void triggerNextAction(int *tmp, Player *j);
@@ -196,8 +196,8 @@ class MainWindow : public QMainWindow {
 	void triggerInfo(const string &string);
 	void triggercolorChoice(Color *c, int *nb);
 	void triggercolorJoker(colorBonus *b);
-	void jetonActionDone();
-	void carteActionDone();
+	void tokenActionDone();
+	void cardActionDone();
 };
 
 #endif // MAINWINDOW_H

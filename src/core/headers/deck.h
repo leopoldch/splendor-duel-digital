@@ -1,5 +1,5 @@
-#ifndef LO21_SPLENDOR_DUEL_PIOCHE_H
-#define LO21_SPLENDOR_DUEL_PIOCHE_H
+#ifndef LO21_SPLENDOR_DUEL_DECK_H
+#define LO21_SPLENDOR_DUEL_DECK_H
 #include "card.h"
 #include <algorithm>
 #include <iostream>
@@ -24,7 +24,7 @@ class Deck {
 
 	Deck(int niv) : level(niv) {
 		if (decks_number > max_decks) {
-			throw SplendorException("Maximum de pioches atteint");
+			throw SplendorException("Maximum number of decks reached");
 		}
 		++decks_number;
 	}

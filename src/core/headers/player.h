@@ -1,5 +1,5 @@
-#ifndef LO21_SPLENDOR_DUEL_JOUEUR_H
-#define LO21_SPLENDOR_DUEL_JOUEUR_H
+#ifndef LO21_SPLENDOR_DUEL_PLAYER_H
+#define LO21_SPLENDOR_DUEL_PLAYER_H
 
 #include "Exception.h"
 #include "bag.h"
@@ -11,9 +11,9 @@
 #include <string>
 #include <vector>
 
-// tâches à réaliser : constructeur destructeur Player (game?)
-// tester toutes les méthodes ?
-// vérifier UML si toutes les méthodes sont implémentées.
+// TODO: constructor/destructor Player (game?)
+// test all methods?
+// check UML if all methods are implemented.
 
 using namespace std;
 
@@ -32,16 +32,16 @@ class StrategyPlayer { // Utilisation Design Pattern Strategy
 	unsigned int games_won;
 	unsigned int games;
 
-	static int const max_nb_jetons = 10;
-	static int const max_nb_cartes_r = 2;
+	static int const max_nb_tokens = 10;
+	static int const max_nb_royal_cards = 2;
 	static int const max_nb_privileges = 3;
-	static int const max_nb_cartes_reservees = 3;
+	static int const max_nb_reserved_cards = 3;
 
 	vector<const JewelryCard *> bought_jewelry_cards;
-	vector<const JewelryCard *> reserved_jewelry_cards; // 3 au max
-	vector<const RoyalCard *> royal_cards;              // ok pour agrégation?
+	vector<const JewelryCard *> reserved_jewelry_cards; // 3 max
+	vector<const RoyalCard *> royal_cards;              // ok for aggregation?
 
-	vector<const Token *> tokens; // tableau de tokens ? or ?
+	vector<const Token *> tokens; // token array ? gold ?
 
 	vector<const Privilege *> privileges;
 
@@ -109,7 +109,7 @@ class StrategyPlayer { // Utilisation Design Pattern Strategy
 		return j;
 	}
 
-	// constructeur destructeur
+	// constructor destructor
 	StrategyPlayer(const string &name);
 	StrategyPlayer(const json data)
 	    : points_number(0), jewelry_cards_number(0), royal_cards_number(0),
@@ -119,7 +119,7 @@ class StrategyPlayer { // Utilisation Design Pattern Strategy
 
 	virtual ~StrategyPlayer();
 
-	// méthodes virtuelles pures
+	// pure virtual methods
 	virtual void choice() = 0;
 	virtual void choice_Qt() = 0;
 	virtual void usePrivilege() = 0;
@@ -147,7 +147,7 @@ class StrategyPlayer { // Utilisation Design Pattern Strategy
 	virtual void tokenVerification_Qt() = 0;
 
 	// getters setters
-	const vector<const JewelryCard *> &getCartesBought() const {
+	const vector<const JewelryCard *> &getBoughtCards() const {
 		return bought_jewelry_cards;
 	}
 	const int getJewelryCardNumber() const { return jewelry_cards_number; }
@@ -167,7 +167,7 @@ class StrategyPlayer { // Utilisation Design Pattern Strategy
 	const int getPrivilegeNumber() const { return privilege_number; }
 	void setPrivilegeNumber(int nb) {
 		if (privilege_number > max_nb_privileges) {
-			throw SplendorException("fichier de chargement corrompu -1");
+			throw SplendorException("corrupted save file -1");
 		}
 		privilege_number = nb;
 	}
@@ -193,55 +193,55 @@ class StrategyPlayer { // Utilisation Design Pattern Strategy
 	const unsigned int getWins() const { return games_won; }
 	const unsigned int getPlayed() const { return games; }
 
-	// setters rajoutés pour les besoins du JSON
+	// setters added for JSON needs
 	void setJewellryCardReserved(vector<const JewelryCard *> j) {
 		if (reserved_jewelry_cards_number < j.size()) {
-			throw SplendorException("Fichier de sauvegarde corrompu -2");
+			throw SplendorException("Corrupted save file -2");
 		}
 		reserved_jewelry_cards = j;
 	}
 	void setJewellryCard(vector<const JewelryCard *> j) {
 		if (jewelry_cards_number < j.size()) {
-			throw SplendorException("Fichier de sauvegarde corrompu -3");
+			throw SplendorException("Corrupted save file -3");
 		}
 		bought_jewelry_cards = j;
 	}
-	void setJetons(vector<const Token *> j) {
-		/*if(j.size() > max_nb_jetons){
-		    throw SplendorException("Fichier de sauvegarde corrompu -4");
+	void setTokens(vector<const Token *> j) {
+		/*if(j.size() > max_nb_tokens){
+		    throw SplendorException("Corrupted save file -4");
 		}*/
 		tokens = j;
 	}
 	void setRoyalCard(vector<const RoyalCard *> r) {
 		if (royal_cards_number < r.size()) {
-			throw SplendorException("Fichier de sauvegarde corrompu 5");
+			throw SplendorException("Corrupted save file 5");
 		}
 		royal_cards = r;
 	}
 	void setPrivileges(vector<const Privilege *> p) {
 		if (privilege_number < p.size()) {
-			throw SplendorException("Fichier de sauvegarde corrompu 6");
+			throw SplendorException("Corrupted save file 6");
 		}
 		privileges = p;
 	}
-	void setNbJetons(unsigned int nb) {
-		if (nb > max_nb_jetons) {
-			throw SplendorException("fichier de chargement corrompu 7");
+	void setNbTokens(unsigned int nb) {
+		if (nb > max_nb_tokens) {
+			throw SplendorException("corrupted save file 7");
 		}
 		token_number = nb;
 	}
 	void setNbJCards(unsigned int nb) { jewelry_cards_number = nb; }
 
 	void setNbJCardsReserved(unsigned int nb) {
-		if (nb > max_nb_cartes_reservees) {
-			throw SplendorException("Fichier de chargement corrompu 8");
+		if (nb > max_nb_reserved_cards) {
+			throw SplendorException("Corrupted save file 8");
 		}
 		reserved_jewelry_cards_number = nb;
 	}
 
 	void setNbRCards(unsigned int nb) {
-		if (nb > max_nb_cartes_r) {
-			throw SplendorException("Fichier de chargement corrompu 9");
+		if (nb > max_nb_royal_cards) {
+			throw SplendorException("Corrupted save file 9");
 		}
 		royal_cards_number = nb;
 	}
@@ -250,10 +250,10 @@ class StrategyPlayer { // Utilisation Design Pattern Strategy
 
 	vector<const Privilege *> &get_privilege() { return privileges; }
 
-	// méthode utilitaires aux core filles
+	// utility methods for child classes
 
 	int calculateBonus(enum colorBonus bonus);
-	int TokenAmount(const Color &couleur) const;
+	int TokenAmount(const Color &color) const;
 	void withdrawTokens(const Color &c, int val);
 	void reserveCard(Draw *t, const int index);
 	void reserveCard(Deck *p);
@@ -266,17 +266,16 @@ class StrategyPlayer { // Utilisation Design Pattern Strategy
 	void withdrawPrivilege();
 	void fillingBoard();
 	bool
-	onlyGoldInJetons() { // true si le player n'a que des tokens or, false sinon
-		for (auto jet : tokens) {
-			if (jet != nullptr and jet->getColor() != Color::gold)
+	onlyGoldInTokens() { // true if the player only has gold tokens, false otherwise
+		for (auto tok : tokens) {
+			if (tok != nullptr and tok->getColor() != Color::gold)
 				return false;
 		}
 		return true;
 	}
 
-	// méthode utilitaire pour le main
-	bool victoryConditions(); // si le player rempli une des trois conditions de
-	                          // victoire, renvoie true
+	// utility method for main
+	bool victoryConditions(); // if the player meets one of the three victory conditions, returns true
 	void printPlayer();
 	int getOptionalChoices();
 	void withdrawWhiteToken();
@@ -286,12 +285,12 @@ class StrategyPlayer { // Utilisation Design Pattern Strategy
 class Player : public StrategyPlayer {
 
   public:
-	// Constructeur et destructeur
+	// Constructor and destructor
 	Player(const string &name);
 	Player(const json data);
 	~Player();
 
-	// Méthodes polymorphiques adaptées pour un player
+	// Polymorphic methods adapted for a player
 	void choice();
 	void choice_Qt();
 	void usePrivilege();
@@ -322,7 +321,7 @@ class RandomPlayer : public StrategyPlayer {
 	RandomPlayer(const json data);
 	~RandomPlayer();
 
-	// Méthodes polymorphiques adaptées pour une RandomPlayer
+	// Polymorphic methods adapted for a RandomPlayer
 	void choice();
 	void choice_Qt();
 	void usePrivilege();
@@ -351,23 +350,23 @@ class RandomPlayer : public StrategyPlayer {
 	void tokenVerification_Qt() { tokenVerification(); }
 };
 
-/**************** Fonctions utilitaires ****************/
+/**************** Utility functions ****************/
 inline std::ostream &operator<<(std::ostream &os, const StrategyPlayer &j) {
-	os << "Pseudo : " << j.getName();
+	os << "Nickname: " << j.getName();
 	if (j.getNbPoints() != 0) {
-		os << "nombre de points : " << j.getNbPoints();
+		os << "number of points: " << j.getNbPoints();
 	}
 	if (j.getCrownNumber() != 0) {
-		os << " nombre de couronnes : " << j.getCrownNumber();
+		os << " number of crowns: " << j.getCrownNumber();
 	}
 	if (j.getReservedCardNumber() != 0) {
-		os << " nombre de cards réservées : " << j.getReservedCardNumber();
+		os << " number of reserved cards: " << j.getReservedCardNumber();
 	}
 	if (j.getPrivilegeNumber() != 0) {
-		os << " nombre de privilège : " << j.getPrivilegeNumber();
+		os << " number of privileges: " << j.getPrivilegeNumber();
 	}
 	if (j.getTokenNumber() != 0) {
-		os << " nombre de tokens : " << j.getTokenNumber();
+		os << " number of tokens: " << j.getTokenNumber();
 	}
 	os << endl;
 	return os;
@@ -377,4 +376,4 @@ int positiveOrNull(int x);
 
 void testPlayers();
 
-#endif // LO21_SPLENDOR_DUEL_JOUEUR_H
+#endif // LO21_SPLENDOR_DUEL_PLAYER_H

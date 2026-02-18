@@ -9,7 +9,7 @@
 class Privilege {
   private:
 	const int id;
-	static int instanceCount; // Compteur d'instances actuelles
+	static int instanceCount; // Current instance counter
 	static const int maxInstances = 3;
 	Privilege(const Privilege &) = delete;
 	Privilege &operator=(const Privilege &) = delete;
@@ -28,19 +28,19 @@ class Privilege {
 			++instanceCount;
 			return new Privilege(id);
 		}
-		throw SplendorException("Nombres d'instances de privileges depasse");
+		throw SplendorException("Number of privilege instances exceeded");
 	}
 
 	const int getId() const { return id; }
 	static int getCount() { return instanceCount; }
 
-	// Méthode statique pour obtenir une instance de la classe
+	// Static method to obtain an instance of the class
 	static const Privilege *GetInstance() {
 		if (instanceCount < maxInstances) {
 			++instanceCount;
 			return new Privilege();
 		}
-		throw SplendorException("Nombres d'instances de privileges depassé");
+		throw SplendorException("Number of privilege instances exceeded");
 	}
 
 	~Privilege() { instanceCount = 0; }

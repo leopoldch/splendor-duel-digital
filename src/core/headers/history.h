@@ -53,12 +53,12 @@ class History {
 
 	static Handler handler;
 
-	// attributs
+	// attributes
 	vector<Match *> matches;
 	unsigned int nb_match = 0;
-	unsigned int nb_joueurs = 0;
+	unsigned int nb_players = 0;
 
-	// méthodes
+	// methods
 
 	History() = default;
 
@@ -77,9 +77,9 @@ class History {
   public:
 	static void freeHistory() { delete &History::getHistory(); }
 
-	void addPlayer() { nb_joueurs++; }
+	void addPlayer() { nb_players++; }
 
-	const unsigned int getNbPlayers() const { return nb_joueurs; }
+	const unsigned int getNbPlayers() const { return nb_players; }
 
 	vector<Match *> getMatches() const { return matches; }
 

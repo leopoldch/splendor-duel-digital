@@ -11,21 +11,21 @@
 #include <QString>
 #include <QWidget>
 
-class Qt_jeton : public QPushButton {
+class Qt_token : public QPushButton {
 	Q_OBJECT
 
   private:
-	bool isClicked; // Track si le jeton a été click
-	const Token *jeton;
+	bool isClicked; // Track if the token was clicked
+	const Token *token;
 	int index;
 
   public:
-	explicit Qt_jeton(QWidget *parent = nullptr);
+	explicit Qt_token(QWidget *parent = nullptr);
 	void toggleClicked();
-	void updateAppearance(); // Mise à jour image
+	void updateAppearance(); // Update image
 
-	const Token *getToken() const { return jeton; }
-	void setJeton(const Token *j) { jeton = j; }
+	const Token *getToken() const { return token; }
+	void setToken(const Token *j) { token = j; }
 
 	const int getIndex() const { return index; }
 	void setIndice(int x) { index = x; }
@@ -34,10 +34,10 @@ class Qt_jeton : public QPushButton {
 	void paintEvent(QPaintEvent *event) override;
 
   signals:
-	void jetonClicked(Qt_jeton *j); // Signal à émettre si le jeton a été click
+	void tokenClicked(Qt_token *j); // Signal to emit if the token was clicked
 
   private slots:
-	void clickedEvent() { emit jetonClicked(this); }
+	void clickedEvent() { emit tokenClicked(this); }
 };
 
 #endif // QT_VUE_JETON_H

@@ -52,7 +52,7 @@ TEST_F(GameInitializationTest, CardsAndPrivileges) {
 
     vector<const JewelryCard*> jewelry_cards = game->getJewelryCards();
     EXPECT_GT(jewelry_cards.size(), 0);
-    EXPECT_LE(jewelry_cards.size(), JewelryCard::getMaxCarteJ());
+    EXPECT_LE(jewelry_cards.size(), JewelryCard::getMaxJewelryCard());
 
     EXPECT_EQ(game->getPrivilegeNumber(), 3);
 }

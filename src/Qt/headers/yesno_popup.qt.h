@@ -24,15 +24,15 @@ class popupYesNo : public QDialog {
 			layout->addWidget(infolabel);
 		}
 
-		QLabel *text = new QLabel("Confirmez votre choix");
+		QLabel *text = new QLabel("Confirm your choice");
 		layout->addWidget(text);
 
-		QPushButton *yesBtn = new QPushButton("Oui", this);
+		QPushButton *yesBtn = new QPushButton("Yes", this);
 		connect(yesBtn, &QPushButton::clicked, this,
 		        [this]() { onChoiceMade('Y'); });
 		layout->addWidget(yesBtn);
 
-		QPushButton *noBtn = new QPushButton("Non", this);
+		QPushButton *noBtn = new QPushButton("No", this);
 		connect(noBtn, &QPushButton::clicked, this,
 		        [this]() { onChoiceMade('N'); });
 		layout->addWidget(noBtn);

@@ -125,22 +125,22 @@ std::map<std::string, enum Position> positionMap = {
     {"below", Position::below},
     {"diag_lower_right", Position::diag_lower_right}};
 
-optional<const Position> Board::tokensAreASide(int i, const Token *jet) {
-	if (jet == getElementToTheRight(i))
+optional<const Position> Board::tokensAreASide(int i, const Token *tok) {
+	if (tok == getElementToTheRight(i))
 		return Position::right;
-	if (jet == getElementToTheUpperRight(i))
+	if (tok == getElementToTheUpperRight(i))
 		return Position::diag_upper_right;
-	if (jet == getElementAbove(i))
+	if (tok == getElementAbove(i))
 		return Position::above;
-	if (jet == getElementToTheUpperLeft(i))
+	if (tok == getElementToTheUpperLeft(i))
 		return Position::diag_upper_left;
-	if (jet == getElementToTheLeft(i))
+	if (tok == getElementToTheLeft(i))
 		return Position::left;
-	if (jet == getElementToTheBelowLeft(i))
+	if (tok == getElementToTheBelowLeft(i))
 		return Position::diag_lower_left;
-	if (jet == getElementBelow(i))
+	if (tok == getElementBelow(i))
 		return Position::below;
-	if (jet == getElementToTheBelowRight(i))
+	if (tok == getElementToTheBelowRight(i))
 		return Position::diag_lower_right;
 
 	return nullopt;
@@ -149,20 +149,20 @@ optional<const Position> Board::tokensAreASide(int i, const Token *jet) {
 bool Board::onlyGold() {
 	if (getCurrentNb() == 0)
 		throw SplendorException("Board empty!");
-	for (auto jet : tokens) {
-		if (jet != nullptr and jet->getColor() != Color::gold)
+	for (auto tok : tokens) {
+		if (tok != nullptr and tok->getColor() != Color::gold)
 			return false;
 	}
 	return true;
 }
 
-bool Board::colorsOnBoard(const optional<enum colorBonus> &couleur) {
+bool Board::colorsOnBoard(const optional<enum colorBonus> &color) {
 	if (getCurrentNb() == 0)
 		throw SplendorException("Board empty!");
 	string s = "Bonus ";
-	for (auto jet : tokens) {
-		if (jet != nullptr and
-		    (s + toString(jet->getColor()) == toString(couleur))) {
+	for (auto tok : tokens) {
+		if (tok != nullptr and
+		    (s + toString(tok->getColor()) == toString(color))) {
 			return true;
 		}
 	}
@@ -170,15 +170,15 @@ bool Board::colorsOnBoard(const optional<enum colorBonus> &couleur) {
 }
 
 vector<int>
-Board::getTokenIndexesByColor(const optional<enum colorBonus> &couleur) {
+Board::getTokenIndexesByColor(const optional<enum colorBonus> &color) {
 	if (getCurrentNb() == 0)
 		throw SplendorException("Board empty!");
 	vector<int> result;
 	string s = "Bonus ";
-	for (auto jet : tokens) {
-		if (jet != nullptr and
-		    (s + toString(jet->getColor()) != toString(couleur))) {
-			result.push_back(Board::getBoard().getIndex(jet->getId()));
+	for (auto tok : tokens) {
+		if (tok != nullptr and
+		    (s + toString(tok->getColor()) != toString(color))) {
+			result.push_back(Board::getBoard().getIndex(tok->getId()));
 		}
 	}
 	return result;
