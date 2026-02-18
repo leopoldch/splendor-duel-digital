@@ -30,4 +30,5 @@ jobs:
         run: mkdir build && cd build && cmake .. && make
 
       - name: Run tests
-        run: ./lo21-splendor-duel-tests
+        run: ctest -v
+        working-directory: build
