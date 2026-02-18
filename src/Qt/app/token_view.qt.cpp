@@ -2,17 +2,17 @@
 #include "main_window.qt.h"
 #include <QCoreApplication>
 
-Qt_jeton::Qt_jeton(QWidget *parent)
-    : QPushButton(parent), jeton(nullptr), isClicked(false) {
+Qt_token::Qt_token(QWidget *parent)
+    : QPushButton(parent), token(nullptr), isClicked(false) {
 	connect(this, SIGNAL(clicked()), this, SLOT(clickedEvent()));
 }
 
-void Qt_jeton::toggleClicked() {
+void Qt_token::toggleClicked() {
 	isClicked = !isClicked;
 	update();
 }
 
-void Qt_jeton::paintEvent(QPaintEvent *event) {
+void Qt_token::paintEvent(QPaintEvent *event) {
 	QPushButton::paintEvent(event);
 
 	QPainter painter(this);
@@ -21,9 +21,9 @@ void Qt_jeton::paintEvent(QPaintEvent *event) {
 	}
 }
 
-void Qt_jeton::updateAppearance() {
-	if (jeton) {
-		QIcon icon(QPixmap(QString::fromStdString(jeton->getVisual())));
+void Qt_token::updateAppearance() {
+	if (token) {
+		QIcon icon(QPixmap(QString::fromStdString(token->getVisual())));
 		this->setIcon(icon);
 		this->setIconSize(this->size());
 	} else {

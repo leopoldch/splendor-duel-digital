@@ -1,5 +1,5 @@
-#ifndef LO21_SPLENDOR_DUEL_PLATEAU_H
-#define LO21_SPLENDOR_DUEL_PLATEAU_H
+#ifndef LO21_SPLENDOR_DUEL_BOARD_H
+#define LO21_SPLENDOR_DUEL_BOARD_H
 #include "Exception.h"
 #include "bag.h"
 #include "tokens.h"
@@ -27,8 +27,8 @@ using namespace std;
 
 class Board {
 	/*
-	 * On prend la disposition de board suivante, selon l'order des tokens
-	 * dans le tableau: 0   |  1   |   2  |   3  |  4
+	 * We use the following board layout, according to the order of tokens
+	 * in the array:    0   |  1   |   2  |   3  |  4
 	 *   --------------------------------
 	 *     5   |  6   |  7   |   8  |  9
 	 *   --------------------------------
@@ -56,7 +56,7 @@ class Board {
 			tokens.push_back(nullptr);
 		}
 	};
-	~Board() = default; // car agrégation !
+	~Board() = default; // aggregation!
 	Board &operator=(const Board &p) = delete;
 	Board(const Board &p) = delete;
 
@@ -99,12 +99,12 @@ class Board {
 				return i;
 			}
 		}
-		throw SplendorException("Token non présent sur le board");
+		throw SplendorException("Token not present on the board");
 	}
 
-	void setJetons(vector<const Token *> j) {
+	void setTokens(vector<const Token *> j) {
 		if (tokens.size() > nb) {
-			throw SplendorException("Trop de tokens dans le tableau");
+			throw SplendorException("Too many tokens in the array");
 		}
 		tokens = j;
 	}
@@ -113,7 +113,7 @@ class Board {
 
 	const Token *getBoardCaseByIndex(int i) const { return tokens[i]; }
 
-	void setTokenOnBoardByIndex(int i, const Token *jet) { tokens[i] = jet; }
+	void setTokenOnBoardByIndex(int i, const Token *tok) { tokens[i] = tok; }
 
 	const Token *getElementToTheRight(int i) const {
 		if ((i + 1) % 5 != 0) {
@@ -144,16 +144,16 @@ class Board {
 		}
 	}
 	const Token *getElementToTheUpperRight(int i) const {
-		if ((i > 4) && ((i + 1) % 5 != 0)) { // si le jeton n'est pas au level
-			                                 // supérieur et sur un bord à right
+		if ((i > 4) && ((i + 1) % 5 != 0)) { // if the token is not on the upper level
+			                                 // and on a right edge
 			return tokens[i - 4];
 		} else {
 			return nullptr;
 		}
 	}
 	const Token *getElementToTheUpperLeft(int i) const {
-		if ((i > 4) && (i % 5 != 0)) { // si le jeton n'est pas au level
-			                           // supérieur et sur un bord à left
+		if ((i > 4) && (i % 5 != 0)) { // if the token is not on the upper level
+			                           // and on a left edge
 			return tokens[i - 6];
 		} else {
 			return nullptr;
@@ -162,8 +162,8 @@ class Board {
 
 	const Token *getElementToTheBelowRight(int i) const {
 		if ((i < 20) &&
-		    ((i + 1) % 5 != 0)) { // si le jeton n'est pas au level
-			                      // inférieur et sur un bord à right
+		    ((i + 1) % 5 != 0)) { // if the token is not on the lower level
+			                      // and on a right edge
 			return tokens[i + 6];
 		} else {
 			return nullptr;
@@ -171,23 +171,23 @@ class Board {
 	}
 
 	const Token *getElementToTheBelowLeft(int i) const {
-		if ((i < 20) && (i % 5 != 0)) { // si le jeton n'est pas au level
-			                            // inférieur et sur un bord à right
+		if ((i < 20) && (i % 5 != 0)) { // if the token is not on the lower level
+			                            // and on a right edge
 			return tokens[i + 4];
 		} else {
 			return nullptr;
 		}
 	}
 
-	optional<const Position> tokensAreASide(int i, const Token *jet);
+	optional<const Position> tokensAreASide(int i, const Token *tok);
 
 	void fill(Bag &bag);
 	void printArray() const;
 	bool onlyGold();
-	bool colorsOnBoard(const optional<enum colorBonus> &couleur);
+	bool colorsOnBoard(const optional<enum colorBonus> &color);
 
 	vector<int>
-	getTokenIndexesByColor(const optional<enum colorBonus> &couleur);
+	getTokenIndexesByColor(const optional<enum colorBonus> &color);
 };
 
-#endif // LO21_SPLENDOR_DUEL_PLATEAU_H
+#endif // LO21_SPLENDOR_DUEL_BOARD_H

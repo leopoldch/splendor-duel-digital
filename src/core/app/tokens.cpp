@@ -10,7 +10,7 @@ int Token::black_number = 0;
 int Token::gold_number = 0;
 int Token::perl_number = 0;
 
-vector<const Token *> initJetons() {
+vector<const Token *> initTokens() {
 	vector<const Token *> token_array;
 	int id = 1;
 

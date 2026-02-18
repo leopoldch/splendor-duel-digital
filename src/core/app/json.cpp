@@ -89,10 +89,10 @@ vector<const RoyalCard *> royalCardsFromJson(json data) {
 
 vector<const Token *> tokensFromJson(json data) {
 	std::vector<const Token *> token_array;
-	for (const auto &jeton : data) {
-		if (jeton != nullptr) {
+	for (const auto &token : data) {
+		if (token != nullptr) {
 			Token *tmp =
-			    new Token(jeton["id"], jeton["color"], jeton["visual"]);
+			    new Token(token["id"], token["color"], token["visual"]);
 			token_array.push_back(tmp);
 		} else {
 			token_array.push_back(nullptr);
@@ -104,7 +104,7 @@ vector<const Token *> tokensFromJson(json data) {
 vector<const Privilege *> privilegesFromJson(json data, unsigned int nb) {
 	if (nb > 3) {
 		throw SplendorException(
-		    "On ne peut pas avoir plus de 3 privilèges. Le json est corrompu.");
+		    "Cannot have more than 3 privileges. The JSON is corrupted.");
 	}
 	std::vector<const Privilege *> privilege_array;
 	for (int i = 0; i < nb; ++i) {
@@ -121,8 +121,8 @@ Deck &deckFromJson(json data) {
 
 Draw &drawFromJson(json data, Deck &deck) {
 	Draw *draw = new Draw(data["level"], data["max_cards"], deck);
-	draw->setNbCartes(data["cards_number"]);
-	draw->setTirage(jewelryCardFromJson(data["jewelry_cards"]));
+	draw->setCardCount(data["cards_number"]);
+	draw->setDrawCards(jewelryCardFromJson(data["jewelry_cards"]));
 	return *draw;
 }
 
@@ -133,14 +133,14 @@ void boardFromJson(json data) {
 	tokens = tokensFromJson(data["tokens"]);
 
 	if (tokens.size() > data["nb"]) {
-		throw SplendorException("erreur dans le nombre de tokens sur le board. "
-		                        "La partie ne peut pas être chargée.");
+		throw SplendorException("error in the number of tokens on the board. "
+		                        "The game cannot be loaded.");
 	}
-	int number_jetons_saved = tokens.size();
-	for (int i = number_jetons_saved; i < data["nb"]; ++i) {
+	int saved_token_count = tokens.size();
+	for (int i = saved_token_count; i < data["nb"]; ++i) {
 		tokens.push_back(nullptr);
 	}
-	deck.setJetons(tokens);
+	deck.setTokens(tokens);
 	deck.setCurrentNb(data["current_nb"]);
 }
 
@@ -157,7 +157,7 @@ void bagFromJson(json data) {
 		}
 
 		bag.setAmountofToken(data["tokens_in_bag_number"]); 
-		// normalement pas besoin de reset nb
-		// mais on sait jamais
+		// normally no need to reset count
+		// but just in case
 	}
 }

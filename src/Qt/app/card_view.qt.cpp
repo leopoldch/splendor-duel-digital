@@ -1,12 +1,12 @@
 #include "card_view.qt.h"
 #include <QDebug>
 
-Qt_carte::Qt_carte(QWidget *parent)
+Qt_card::Qt_card(QWidget *parent)
     : QPushButton(parent), isClicked(false), card(nullptr) {
 	connect(this, SIGNAL(clicked()), this, SLOT(clickedEvent()));
 }
 
-void Qt_carte::paintEvent(QPaintEvent *event) {
+void Qt_card::paintEvent(QPaintEvent *event) {
 	QPushButton::paintEvent(event); // Call base class paint event
 
 	QPainter painter(this);
@@ -19,7 +19,7 @@ void Qt_carte::paintEvent(QPaintEvent *event) {
 	painter.setBrush(Qt::transparent);
 }
 
-void Qt_carte::updateAppearance() {
+void Qt_card::updateAppearance() {
 	if (card != nullptr) {
 		qDebug() << card->getVisual();
 		QIcon icon(QPixmap(QString::fromStdString(card->getVisual())));
@@ -34,14 +34,14 @@ void Qt_carte::updateAppearance() {
 	}
 }
 
-void Qt_carte::updateAppearance(const std::string &string) {
+void Qt_card::updateAppearance(const std::string &string) {
 	m_image = QPixmap(QString::fromStdString(string));
 	setIcon(QIcon(m_image));
 	setIconSize(size());
 	update();
 }
 
-void Qt_carte::toggleClicked() {
+void Qt_card::toggleClicked() {
 	isClicked = !isClicked;
 	update();
 }

@@ -12,10 +12,10 @@
 int main(int argc, char *argv[]) {
 	QApplication app(argc, argv);
 
-	InfoDialog info_dialog("Bienvenue dans le game Splendor Duel !");
+	InfoDialog info_dialog("Welcome to Splendor Duel!");
 	info_dialog.exec();
 
-	popupYesNo yesno(nullptr, "Voulez vous reprendre la dernière partie en cours (Oui/Non) ?");
+	popupYesNo yesno(nullptr, "Do you want to resume the last game in progress (Yes/No)?");
 	yesno.exec();
 	char tmp = yesno.getUserChoice();
 
@@ -31,12 +31,13 @@ int main(int argc, char *argv[]) {
 	while (tmp2 == 'Y') {
 
 		popupYesNo relaunch(nullptr,
-		                    "Voulez vous replay (Oui) ou fermer (non) ?");
+		                    "Do you want to replay (Yes) or close (No)?");
 		relaunch.exec();
 		try {
 			tmp2 = relaunch.getUserChoice();
 			if (tmp2 == 'Y') {
 				gameFromScratch(argc, argv);
+				Game::free();
 			}
 		} catch (SplendorException &e) {
 			MainWindow::getMainWindow().triggerInfo(e.getInfo());

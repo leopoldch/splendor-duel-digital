@@ -1,5 +1,5 @@
-#ifndef LO21_SPLENDOR_DUEL_SAC_H
-#define LO21_SPLENDOR_DUEL_SAC_H
+#ifndef LO21_SPLENDOR_DUEL_BAG_H
+#define LO21_SPLENDOR_DUEL_BAG_H
 #include "tokens.h"
 #include <iostream>
 #include <vector>
@@ -32,7 +32,7 @@ class Bag {
 	void printBag();
 	static Bag &get();
 	static void free();
-	void insertToken(const Token *jet);
+	void insertToken(const Token *tok);
 
 	json toJson() const {
 		json data_to_be_saved;
@@ -50,23 +50,23 @@ class Bag {
 	void setAmountofToken(int nbr) {
 		if (tokens_in_bag_number < 0) {
 			throw SplendorException(
-			    "Il n'y a déjà plus de tokens dans le bag!");
+			    "There are already no more tokens in the bag!");
 		}
 		tokens_in_bag_number = nbr;
 	}
 	const Token *getTokenByIndex(int i) const { return tokens[i]; }
 
-	void placeTokenInBagByIndex(int i, Token *jet) { tokens[i] = jet; }
+	void placeTokenInBagByIndex(int i, Token *tok) { tokens[i] = tok; }
 
 	void takeTokenByIndex(int i) {
 		if ((i < 0) || (i >= Bag::getTokenNumber())) {
 			throw SplendorException(
-			    "L'index du jeton ne peut pas être négatif, ou "
-			    "supérieur au nombre total de tokens autorisés");
+			    "The token index cannot be negative or greater than the "
+			    "total number of allowed tokens");
 		}
 		tokens.erase(tokens.begin() + i);
 		--tokens_in_bag_number;
 	}
 };
 
-#endif // LO21_SPLENDOR_DUEL_SAC_H
+#endif // LO21_SPLENDOR_DUEL_BAG_H

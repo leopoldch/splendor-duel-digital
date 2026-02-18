@@ -53,7 +53,7 @@ MainWindow::MainWindow(QWidget *parent)
 
 	QWidget *centralWidget = new QWidget(this);
 
-	// Background pour toute la fenêtre
+	// Background for the entire window
 	centralWidget->setStyleSheet(
 	    "background-image: url('../src/assets/background.jpg'); background-position: "
 	    "center;");
@@ -61,22 +61,22 @@ MainWindow::MainWindow(QWidget *parent)
 	QVBoxLayout *mainLayout = new QVBoxLayout(centralWidget);
 	mainLayout->setSpacing(16);
 
-	quijoue = new QLabel("Qui joue", this);
-	quijoue->setStyleSheet("QLabel { color: white; background-color: white; "
+	whoPlays = new QLabel("Current player", this);
+	whoPlays->setStyleSheet("QLabel { color: white; background-color: white; "
 	                       "border: 1px solid white; }");
-	mainLayout->addWidget(quijoue, 0, Qt::AlignLeft);
+	mainLayout->addWidget(whoPlays, 0, Qt::AlignLeft);
 
-	// ######## SCORE EN HAUT ET BOUTONS ########
+	// ######## TOP SCORE AND BUTTONS ########
 
-	// Scores sur QLCD Display
-	topScoreDisplay = new QLCDNumber(this);    // Display avec 2 digits
-	bottomScoreDisplay = new QLCDNumber(this); // Display avec 2 digits
+	// Scores on QLCD Display
+	topScoreDisplay = new QLCDNumber(this);    // Display with 2 digits
+	bottomScoreDisplay = new QLCDNumber(this); // Display with 2 digits
 
-	// Afficher 0 pour l'instant
+	// Display 0 for now
 	topScoreDisplay->display(0);
 	bottomScoreDisplay->display(0);
 
-	// Les rajouter sur le layout principal
+	// Add them to the main layout
 	QGridLayout *topPlayer = new QGridLayout;
 	topPlayer->addWidget(topPlayerNameLabel, 0, 1, Qt::AlignCenter);
 	topPlayer->addWidget(topScoreDisplay, 1, 1, Qt::AlignCenter);
@@ -97,91 +97,91 @@ MainWindow::MainWindow(QWidget *parent)
 
 	mainLayout->addLayout(topPlayer);
 
-	// Boutons du haut (cards et tokens)
-	viewCardsButtonTop = new QPushButton("Voir cards achetées", this);
-	viewJetonsButtonTop = new QPushButton("Voir tokens", this);
-	viewReservedCardsButtonTop = new QPushButton("Voir cards réservées", this);
+	// Top buttons (cards and tokens)
+	viewCardsButtonTop = new QPushButton("View bought cards", this);
+	viewTokensButtonTop = new QPushButton("View tokens", this);
+	viewReservedCardsButtonTop = new QPushButton("View reserved cards", this);
 
-	// Faire le texte white
+	// Make the text white
 	viewCardsButtonTop->setStyleSheet("color: rgba(255, 255, 255, 255);");
-	viewJetonsButtonTop->setStyleSheet("color: rgba(255, 255, 255, 255);");
+	viewTokensButtonTop->setStyleSheet("color: rgba(255, 255, 255, 255);");
 	viewReservedCardsButtonTop->setStyleSheet(
 	    "color: rgba(255, 255, 255, 255);");
 
-	// Connecter aux fonctionnalités
+	// Connect to features
 	connect(viewCardsButtonTop, &QPushButton::clicked, this,
 	        &MainWindow::showBoughtCardsTop);
-	connect(viewJetonsButtonTop, &QPushButton::clicked, this,
-	        &MainWindow::showJetonsTop);
+	connect(viewTokensButtonTop, &QPushButton::clicked, this,
+	        &MainWindow::showTokensTop);
 	connect(viewReservedCardsButtonTop, &QPushButton::clicked, this,
 	        &MainWindow::showReservedCardsTop);
 
-	// Ajouter un layout et les mettre dedans
+	// Add a layout and put them in it
 	QHBoxLayout *topButtonLayout = new QHBoxLayout(this);
 	topButtonLayout->addWidget(viewCardsButtonTop);
-	topButtonLayout->addWidget(viewJetonsButtonTop);
+	topButtonLayout->addWidget(viewTokensButtonTop);
 	topButtonLayout->addWidget(viewReservedCardsButtonTop);
 	mainLayout->addLayout(topButtonLayout);
 
-	// ######## PLATEAU ET TIRAGES ########
+	// ######## BOARD AND DRAWS ########
 
-	// Board et tirages
+	// Board and draws
 	QWidget *middleContainer = new QWidget(this);
 	QHBoxLayout *middleLayout = new QHBoxLayout(middleContainer);
 
-	// Créer le board et les tirages
-	board = &Qt_Plateau::getPlateau();
-	tirages = new Qt_Tirages(this);
+	// Create the board and draws
+	board = &Qt_Board::getBoard();
+	draws = new Qt_Draws(this);
 
-	QVBoxLayout *plateauLayout = new QVBoxLayout(this);
-	plateauLayout->addWidget(board);
+	QVBoxLayout *boardLayout = new QVBoxLayout(this);
+	boardLayout->addWidget(board);
 
 	middleLayout->addLayout(
-	    plateauLayout); // Rajouter le board et le bouton au middle layout
-	middleLayout->addStretch(); // Stretch pour mettre les tirages à right
-	tirages->setStyleSheet("background-image: url('../src/assets/background.jpg'); "
+	    boardLayout); // Add the board and button to the middle layout
+	middleLayout->addStretch(); // Stretch to put the draws to the right
+	draws->setStyleSheet("background-image: url('../src/assets/background.jpg'); "
 	                       "background-position: center;");
-	middleLayout->addWidget(tirages);
+	middleLayout->addWidget(draws);
 	mainLayout->addWidget(middleContainer);
 
-	// ######## CONDITION DE VICTOIRE ET REGLES ########
+	// ######## VICTORY CONDITIONS AND RULES ########
 
-	QVBoxLayout *regles = new QVBoxLayout;
+	QVBoxLayout *rules = new QVBoxLayout;
 
-	// Ajouter le bouton de règles
-	QPushButton *viewRegles = new QPushButton("Voir règles", this);
-	QPushButton *viewStats = new QPushButton("Historique", this);
-	QPushButton *viewStatsPlayers = new QPushButton("Statistiques", this);
-	viewRegles->setStyleSheet("color: rgba(255, 255, 255, 255);");
-	viewRegles->setFixedWidth(397 / 3);
+	// Add rules button
+	QPushButton *viewRules = new QPushButton("View rules", this);
+	QPushButton *viewStats = new QPushButton("History", this);
+	QPushButton *viewStatsPlayers = new QPushButton("Statistics", this);
+	viewRules->setStyleSheet("color: rgba(255, 255, 255, 255);");
+	viewRules->setFixedWidth(397 / 3);
 	viewStats->setStyleSheet("color: rgba(255, 255, 255, 255);");
 	viewStats->setFixedWidth(397 / 3);
 	viewStatsPlayers->setStyleSheet("color: rgba(255, 255, 255, 255);");
 	viewStatsPlayers->setFixedWidth(397 / 3);
-	connect(viewRegles, &QPushButton::clicked, this, &MainWindow::openWebLink);
+	connect(viewRules, &QPushButton::clicked, this, &MainWindow::openWebLink);
 	connect(viewStats, &QPushButton::clicked, this, &MainWindow::showStats);
 	connect(viewStatsPlayers, &QPushButton::clicked, this,
 	        &MainWindow::showStatsPlayers);
 
-	// Conditions de victoire et son image
-	QLabel *conditionsVictoire = new QLabel(this);
+	// Victory conditions and its image
+	QLabel *victoryConditions = new QLabel(this);
 	QPixmap originalPixmap(
 	    "../src/assets/rest_detoured/Conditions_victoire.png");
 	QPixmap scaledPixmap = originalPixmap.scaled(
 	    397 / 3, 330 / 3, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-	conditionsVictoire->setPixmap(scaledPixmap);
-	conditionsVictoire->setFixedSize(scaledPixmap.size());
+	victoryConditions->setPixmap(scaledPixmap);
+	victoryConditions->setFixedSize(scaledPixmap.size());
 
-	// Les rajouter au layout
-	regles->addWidget(conditionsVictoire, Qt::AlignCenter);
-	regles->addWidget(viewRegles, Qt::AlignCenter);
-	regles->addWidget(viewStats, Qt::AlignCenter);
-	regles->addWidget(viewStatsPlayers, Qt::AlignCenter);
-	regles->addStretch(1);
+	// Add them to the layout
+	rules->addWidget(victoryConditions, Qt::AlignCenter);
+	rules->addWidget(viewRules, Qt::AlignCenter);
+	rules->addWidget(viewStats, Qt::AlignCenter);
+	rules->addWidget(viewStatsPlayers, Qt::AlignCenter);
+	rules->addStretch(1);
 
-	middleLayout->addLayout(regles, Qt::AlignCenter);
+	middleLayout->addLayout(rules, Qt::AlignCenter);
 
-	// ######## SCORE EN BAS ET BOUTONS ########
+	// ######## BOTTOM SCORE AND BUTTONS ########
 
 	QGridLayout *bottomPlayer = new QGridLayout;
 	bottomPlayer->addWidget(bottomPlayerNameLabel, 0, 1, Qt::AlignCenter);
@@ -203,33 +203,33 @@ MainWindow::MainWindow(QWidget *parent)
 
 	mainLayout->addLayout(bottomPlayer);
 
-	// Boutons du bas
-	viewCardsButtonBottom = new QPushButton("Voir cards achetées", this);
-	viewJetonsButtonBottom = new QPushButton("Voir tokens", this);
+	// Bottom buttons
+	viewCardsButtonBottom = new QPushButton("View bought cards", this);
+	viewTokensButtonBottom = new QPushButton("View tokens", this);
 	viewReservedCardsButtonBottom =
-	    new QPushButton("Voir cards réservées", this);
+	    new QPushButton("View reserved cards", this);
 
 	viewCardsButtonBottom->setStyleSheet("color: rgba(255, 255, 255, 255);");
-	viewJetonsButtonBottom->setStyleSheet("color: rgba(255, 255, 255, 255);");
+	viewTokensButtonBottom->setStyleSheet("color: rgba(255, 255, 255, 255);");
 	viewReservedCardsButtonBottom->setStyleSheet(
 	    "color: rgba(255, 255, 255, 255);");
 	connect(viewCardsButtonBottom, &QPushButton::clicked, this,
 	        &MainWindow::showBoughtCardsBottom);
-	connect(viewJetonsButtonBottom, &QPushButton::clicked, this,
-	        &MainWindow::showJetonsBottom);
+	connect(viewTokensButtonBottom, &QPushButton::clicked, this,
+	        &MainWindow::showTokensBottom);
 	connect(viewReservedCardsButtonBottom, &QPushButton::clicked, this,
 	        &MainWindow::showReservedCardsBottom);
 
 	QHBoxLayout *bottomButtonLayout = new QHBoxLayout;
 	bottomButtonLayout->addWidget(viewCardsButtonBottom);
-	bottomButtonLayout->addWidget(viewJetonsButtonBottom);
+	bottomButtonLayout->addWidget(viewTokensButtonBottom);
 	bottomButtonLayout->addWidget(viewReservedCardsButtonBottom);
 	mainLayout->addLayout(bottomButtonLayout);
 
-	// Set le widget central
+	// Set the central widget
 	setCentralWidget(centralWidget);
 
-	// Connexions
+	// Connections
 	connect(this, &MainWindow::triggerNextAction, this,
 	        &MainWindow::nextAction);
 	connect(this, &MainWindow::triggerYesNo, this, &MainWindow::YesNo);
@@ -238,52 +238,52 @@ MainWindow::MainWindow(QWidget *parent)
 	        &MainWindow::colorChoice);
 	connect(this, &MainWindow::triggercolorJoker, this,
 	        &MainWindow::colorJoker);
-	connect(this, &MainWindow::jetonActionDone, &wait_for_action_jeton,
+	connect(this, &MainWindow::tokenActionDone, &wait_for_action_token,
 	        &QEventLoop::quit);
-	connect(this, &MainWindow::carteActionDone, &wait_for_action_carte,
+	connect(this, &MainWindow::cardActionDone, &wait_for_action_card,
 	        &QEventLoop::quit);
 }
 
 MainWindow::~MainWindow() {
-	// Rien
+	// Nothing
 }
 
-void MainWindow::showJetonsBottom() {
-	QDialog *jetonsDialog = new QDialog(this);
-	setCurrentDialog(jetonsDialog);
-	jetonsDialog->setStyleSheet(
+void MainWindow::showTokensBottom() {
+	QDialog *tokensDialog = new QDialog(this);
+	setCurrentDialog(tokensDialog);
+	tokensDialog->setStyleSheet(
 	    "background-image: url('../src/assets/background.jpg'); "
 	    "background-position: center;");
 
-	QVBoxLayout *verticallayout = new QVBoxLayout(jetonsDialog);
+	QVBoxLayout *verticallayout = new QVBoxLayout(tokensDialog);
 
-	QLabel *name = new QLabel(jetonsDialog);
+	QLabel *name = new QLabel(tokensDialog);
 	name->setText(
-	    "Jetons de " +
+	    "Tokens of " +
 	    QString::fromStdString(Game::getGame().getCurrentPlayer().getName()));
 	name->setStyleSheet("QLabel { color: white; }");
 
 	verticallayout->addWidget(name, Qt::AlignCenter);
 
-	QGridLayout *layout = new QGridLayout(jetonsDialog);
-	QWidget *gridWidget = new QWidget(jetonsDialog);
+	QGridLayout *layout = new QGridLayout(tokensDialog);
+	QWidget *gridWidget = new QWidget(tokensDialog);
 
 	gridWidget->setLayout(layout);
 
 	int nb = Game::getGame().getCurrentPlayer().getTokenNumber();
 
 	for (int i = 0; i < 16; i++) {
-		Qt_jeton *j = new Qt_jeton(jetonsDialog);
+		Qt_token *j = new Qt_token(tokensDialog);
 		j->setIndice(i);
 		if (i < nb)
-			j->setJeton(Game::getGame().getCurrentPlayer().getToken()[i]);
+			j->setToken(Game::getGame().getCurrentPlayer().getToken()[i]);
 		j->setFixedSize(
 		    60, 60); // Width: 100px, Height: 140px based on 1:1.4 aspect ratio
 		j->setStyleSheet("border: 1px solid black;");
 		layout->addWidget(j, i / 4, i % 4);
 		if (getDiscarding() == true)
-			connect(j, &Qt_jeton::jetonClicked, &MainWindow::getMainWindow(),
-			        &MainWindow::jetonClicked);
+			connect(j, &Qt_token::tokenClicked, &MainWindow::getMainWindow(),
+			        &MainWindow::tokenClicked);
 		j->updateAppearance();
 	}
 
@@ -294,9 +294,9 @@ void MainWindow::showJetonsBottom() {
 	}
 
 	verticallayout->addWidget(gridWidget);
-	jetonsDialog->setLayout(verticallayout);
+	tokensDialog->setLayout(verticallayout);
 
-	jetonsDialog->show();
+	tokensDialog->show();
 }
 
 void MainWindow::showReservedCardsBottom() {
@@ -308,8 +308,8 @@ void MainWindow::showReservedCardsBottom() {
 
 	int nb = Game::getGame().getCurrentPlayer().getReservedCardNumber();
 	for (int i = 0; i < nb; i++) {
-		qDebug() << "CARTES RESERVEES";
-		Qt_carte *c = new Qt_carte(cardsDialog);
+		qDebug() << "RESERVED CARDS";
+		Qt_card *c = new Qt_card(cardsDialog);
 		c->setCard(Game::getGame().getCurrentPlayer().getReservedCards()[i]);
 		c->setFixedSize(75, 105);
 		if (getBuyingCard() == true)
@@ -317,17 +317,17 @@ void MainWindow::showReservedCardsBottom() {
 		else
 			c->setDisabled(true);
 		c->setIndice(i);
-		c->setReservee(true);
-		connect(c, &Qt_carte::carteClicked, &MainWindow::getMainWindow(),
-		        &MainWindow::carteClicked);
-		connect(c, &Qt_carte::carteClicked, cardsDialog, &QDialog::accept);
+		c->setReserved(true);
+		connect(c, &Qt_card::cardClicked, &MainWindow::getMainWindow(),
+		        &MainWindow::cardClicked);
+		connect(c, &Qt_card::cardClicked, cardsDialog, &QDialog::accept);
 		layout->addWidget(c, i / 4, i % 4);
 		c->updateAppearance();
 		qDebug() << c->getCard()->getVisual();
 	}
 
 	cardsDialog->setLayout(layout);
-	cardsDialog->exec(); // L'afficher
+	cardsDialog->exec(); // Show it
 }
 
 void MainWindow::showBoughtCardsBottom() {
@@ -339,9 +339,9 @@ void MainWindow::showBoughtCardsBottom() {
 
 	int nb = Game::getGame().getCurrentPlayer().getJewelryCardNumber();
 	for (int i = 0; i < nb; i++) {
-		qDebug() << "CARTES ACHETEES";
-		Qt_carte *c = new Qt_carte(cardsDialog);
-		c->setCard(Game::getGame().getCurrentPlayer().getCartesBought()[i]);
+		qDebug() << "BOUGHT CARDS";
+		Qt_card *c = new Qt_card(cardsDialog);
+		c->setCard(Game::getGame().getCurrentPlayer().getBoughtCards()[i]);
 		c->setFixedSize(75, 105);
 		c->setDisabled(true);
 		layout->addWidget(c, i / 4, i % 4);
@@ -350,7 +350,7 @@ void MainWindow::showBoughtCardsBottom() {
 	}
 
 	cardsDialog->setLayout(layout);
-	cardsDialog->exec(); // L'afficher
+	cardsDialog->exec(); // Show it
 }
 
 void MainWindow::showBoughtCardsTop() {
@@ -362,9 +362,9 @@ void MainWindow::showBoughtCardsTop() {
 
 	int nb = Game::getGame().getOpponent().getJewelryCardNumber();
 	for (int i = 0; i < nb; i++) {
-		qDebug() << "CARTES ACHETEES";
-		Qt_carte *c = new Qt_carte(cardsDialog);
-		c->setCard(Game::getGame().getOpponent().getCartesBought()[i]);
+		qDebug() << "BOUGHT CARDS";
+		Qt_card *c = new Qt_card(cardsDialog);
+		c->setCard(Game::getGame().getOpponent().getBoughtCards()[i]);
 		c->setFixedSize(75, 105);
 		c->setDisabled(true);
 		layout->addWidget(c, i / 4, i % 4);
@@ -373,48 +373,48 @@ void MainWindow::showBoughtCardsTop() {
 	}
 
 	cardsDialog->setLayout(layout);
-	cardsDialog->exec(); // L'afficher
+	cardsDialog->exec(); // Show it
 }
 
-void MainWindow::showJetonsTop() {
-	QDialog *jetonsDialog = new QDialog(this);
-	jetonsDialog->setStyleSheet(
+void MainWindow::showTokensTop() {
+	QDialog *tokensDialog = new QDialog(this);
+	tokensDialog->setStyleSheet(
 	    "background-image: url('../src/assets/background.jpg'); "
 	    "background-position: center;");
-	setCurrentDialog(jetonsDialog);
+	setCurrentDialog(tokensDialog);
 
-	QVBoxLayout *verticallayout = new QVBoxLayout(jetonsDialog);
+	QVBoxLayout *verticallayout = new QVBoxLayout(tokensDialog);
 
-	QLabel *name = new QLabel(jetonsDialog);
-	name->setText("Jetons de " + QString::fromStdString(
+	QLabel *name = new QLabel(tokensDialog);
+	name->setText("Tokens of " + QString::fromStdString(
 	                                 Game::getGame().getOpponent().getName()));
 	name->setStyleSheet("QLabel { color: white; }");
 
 	verticallayout->addWidget(name, Qt::AlignCenter);
 
-	QGridLayout *layout = new QGridLayout(jetonsDialog);
-	QWidget *gridWidget = new QWidget(jetonsDialog);
+	QGridLayout *layout = new QGridLayout(tokensDialog);
+	QWidget *gridWidget = new QWidget(tokensDialog);
 
 	gridWidget->setLayout(layout);
 
 	int nb = Game::getGame().getOpponent().getTokenNumber();
 
 	for (int i = 0; i < 16; i++) {
-		Qt_jeton *j = new Qt_jeton(jetonsDialog);
+		Qt_token *j = new Qt_token(tokensDialog);
 		j->setIndice(i);
 		if (i < nb)
-			j->setJeton(Game::getGame().getOpponent().getToken()[i]);
+			j->setToken(Game::getGame().getOpponent().getToken()[i]);
 		j->setFixedSize(60, 60);
 		j->setStyleSheet("border: 1px solid black;");
 		layout->addWidget(j, i / 4, i % 4);
 		j->setDisabled(true);
-		if (i < nb && MainWindow::getMainWindow().getStealingJeton() == true &&
+		if (i < nb && MainWindow::getMainWindow().getStealingToken() == true &&
 		    Game::getGame().getOpponent().getToken()[i]->getColor() !=
 		        Color::gold) {
 			j->setDisabled(false);
-			connect(j, &Qt_jeton::jetonClicked, &MainWindow::getMainWindow(),
-			        &MainWindow::jetonClicked);
-			connect(j, &Qt_jeton::jetonClicked, jetonsDialog, &QDialog::accept);
+			connect(j, &Qt_token::tokenClicked, &MainWindow::getMainWindow(),
+			        &MainWindow::tokenClicked);
+			connect(j, &Qt_token::tokenClicked, tokensDialog, &QDialog::accept);
 		}
 		j->updateAppearance();
 	}
@@ -426,9 +426,9 @@ void MainWindow::showJetonsTop() {
 	}
 
 	verticallayout->addWidget(gridWidget);
-	jetonsDialog->setLayout(verticallayout);
+	tokensDialog->setLayout(verticallayout);
 
-	jetonsDialog->exec();
+	tokensDialog->exec();
 }
 
 void MainWindow::showReservedCardsTop() {
@@ -440,8 +440,8 @@ void MainWindow::showReservedCardsTop() {
 
 	int nb = Game::getGame().getOpponent().getReservedCardNumber();
 	for (int i = 0; i < nb; i++) {
-		qDebug() << "CARTES RESERVEES";
-		Qt_carte *c = new Qt_carte(cardsDialog);
+		qDebug() << "RESERVED CARDS";
+		Qt_card *c = new Qt_card(cardsDialog);
 		c->setCard(Game::getGame().getOpponent().getReservedCards()[i]);
 		c->setFixedSize(75, 105);
 		c->setDisabled(true);
@@ -452,7 +452,7 @@ void MainWindow::showReservedCardsTop() {
 	}
 
 	cardsDialog->setLayout(layout);
-	cardsDialog->exec(); // L'afficher
+	cardsDialog->exec(); // Show it
 }
 
 void MainWindow::updateTopScore(int score) { topScoreDisplay->display(score); }
@@ -462,7 +462,7 @@ void MainWindow::updateBottomScore(int score) {
 }
 
 void MainWindow::fillBoard() {
-	// Mettre l'action ici
+	// Put the action here
 }
 
 void MainWindow::openWebLink() {
@@ -482,109 +482,109 @@ void MainWindow::setBottomPlayerName(const QString &name) {
 
 void MainWindow::updateDraws() {
 
-	// Update des pointeurs card
+	// Update card pointers
 
 	// Draw 1
-	qDebug() << "Tirage1";
+	qDebug() << "Draw1";
 	for (int i = 0; i < 5; i++) {
-		tirages->getTier1()[i]->setCard(
-		    Game::getGame().getFirstDraw()->getTirage()[i]);
+		draws->getTier1()[i]->setCard(
+		    Game::getGame().getFirstDraw()->getDrawCards()[i]);
 
-		// Update des visuels
+		// Update visuals
 		if (i < Game::getGame().getFirstDraw()->getCardsNumber())
-			tirages->getTier1()[i]->updateAppearance();
+			draws->getTier1()[i]->updateAppearance();
 		else {
-			tirages->getTier1()[i]->setIcon(QIcon());
-			tirages->getTier1()[i]->setIconSize(this->size());
+			draws->getTier1()[i]->setIcon(QIcon());
+			draws->getTier1()[i]->setIconSize(this->size());
 		}
 	}
 
 	// Draw 2
-	qDebug() << "Tirage2";
+	qDebug() << "Draw2";
 	for (int i = 0; i < 4; i++) {
-		tirages->getTier2()[i]->setCard(
-		    Game::getGame().getSecondDraw()->getTirage()[i]);
+		draws->getTier2()[i]->setCard(
+		    Game::getGame().getSecondDraw()->getDrawCards()[i]);
 
-		// Update des visuels
+		// Update visuals
 		if (i < Game::getGame().getSecondDraw()->getCardsNumber())
-			tirages->getTier2()[i]->updateAppearance();
+			draws->getTier2()[i]->updateAppearance();
 		else {
-			tirages->getTier2()[i]->setIcon(QIcon());
-			tirages->getTier2()[i]->setIconSize(this->size());
+			draws->getTier2()[i]->setIcon(QIcon());
+			draws->getTier2()[i]->setIconSize(this->size());
 		}
 	}
 
 	// Draw 3
-	qDebug() << "Tirage3";
+	qDebug() << "Draw3";
 	for (int i = 0; i < 3; i++) {
-		tirages->getTier3()[i]->setCard(
-		    Game::getGame().getThirdDraw()->getTirage()[i]);
+		draws->getTier3()[i]->setCard(
+		    Game::getGame().getThirdDraw()->getDrawCards()[i]);
 
-		// Update des visuels
+		// Update visuals
 		if (i < Game::getGame().getThirdDraw()->getCardsNumber())
-			tirages->getTier3()[i]->updateAppearance();
+			draws->getTier3()[i]->updateAppearance();
 		else {
-			tirages->getTier3()[i]->setIcon(QIcon());
-			tirages->getTier3()[i]->setIconSize(this->size());
+			draws->getTier3()[i]->setIcon(QIcon());
+			draws->getTier3()[i]->setIconSize(this->size());
 		}
 	}
 
-	// Cartes royales
-	qDebug() << "CartesRoyales";
+	// Royal cards
+	qDebug() << "RoyalCards";
 
 	auto currentRoyalCards = Game::getGame().getRoyalCards(); 
 
 	for (int i = 0; i < 4; i++) {
 		if (i < currentRoyalCards.size()) {
-			tirages->getRoyalCards()[i]->setCard(currentRoyalCards[i]);
-			tirages->getRoyalCards()[i]->updateAppearance();
-			tirages->getRoyalCards()[i]->setEnabled(true);
+			draws->getRoyalCards()[i]->setCard(currentRoyalCards[i]);
+			draws->getRoyalCards()[i]->updateAppearance();
+			draws->getRoyalCards()[i]->setEnabled(true);
 		} 
 		else {
-			tirages->getRoyalCards()[i]->setCard(nullptr);
-			tirages->getRoyalCards()[i]->setIcon(QIcon());
-			tirages->getRoyalCards()[i]->setIconSize(this->size());
-			tirages->getRoyalCards()[i]->setDisabled(true);
+			draws->getRoyalCards()[i]->setCard(nullptr);
+			draws->getRoyalCards()[i]->setIcon(QIcon());
+			draws->getRoyalCards()[i]->setIconSize(this->size());
+			draws->getRoyalCards()[i]->setDisabled(true);
 		}
 	}
 
-	if (tirages->getDeck1() != nullptr) {
+	if (draws->getDeck1() != nullptr) {
 		if (!Game::getGame().getDeck(1)->isEmpty())
-			tirages->getDeck1()->updateAppearance(
+			draws->getDeck1()->updateAppearance(
 			    "../src/assets/rest_detoured/Pioche_niveau_1.png");
 		else {
-			tirages->getDeck1()->setIcon(QIcon());
-			tirages->getDeck1()->setIconSize(this->size());
-			tirages->getDeck1()->setDisabled(true);
+			draws->getDeck1()->setIcon(QIcon());
+			draws->getDeck1()->setIconSize(this->size());
+			draws->getDeck1()->setDisabled(true);
 		}
 	}
-	if (tirages->getDeck2() != nullptr) {
+	if (draws->getDeck2() != nullptr) {
 		if (!Game::getGame().getDeck(2)->isEmpty())
-			tirages->getDeck2()->updateAppearance(
+			draws->getDeck2()->updateAppearance(
 			    "../src/assets/rest_detoured/Pioche_niveau_2.png");
 		else {
-			tirages->getDeck2()->setIcon(QIcon());
-			tirages->getDeck2()->setIconSize(this->size());
-			tirages->getDeck2()->setDisabled(true);
+			draws->getDeck2()->setIcon(QIcon());
+			draws->getDeck2()->setIconSize(this->size());
+			draws->getDeck2()->setDisabled(true);
 		}
 	}
-	if (tirages->getDeck3() != nullptr) {
+	if (draws->getDeck3() != nullptr) {
 		if (!Game::getGame().getDeck(3)->isEmpty())
-			tirages->getDeck3()->updateAppearance(
+			draws->getDeck3()->updateAppearance(
 			    "../src/assets/rest_detoured/Pioche_niveau_3.png");
 		else {
-			tirages->getDeck3()->setIcon(QIcon());
-			tirages->getDeck3()->setIconSize(this->size());
-			tirages->getDeck3()->setDisabled(true);
+			draws->getDeck3()->setIcon(QIcon());
+			draws->getDeck3()->setIconSize(this->size());
+			draws->getDeck3()->setDisabled(true);
 		}
 	}
 
-	// Cartes royales et privileges des joueurs
+	// Royal cards and player privileges
 
 	// Top
 	int top_privileges = Game::getGame().getOpponent().getPrivilegeNumber();
 	topPrivileges->setText(
-	    "Nombre privilèges: " +
+	    "Privileges: " +
 	    QString::fromStdString(std::to_string(top_privileges)));
 	switch (Game::getGame().getOpponent().getRoyalCardNumber()) {
 	case 0: {
@@ -626,7 +626,7 @@ void MainWindow::updateDraws() {
 	int bottom_privileges =
 	    Game::getGame().getCurrentPlayer().getPrivilegeNumber();
 	bottomPrivileges->setText(
-	    "Nombre privilèges: " +
+	    "Privileges: " +
 	    QString::fromStdString(std::to_string(bottom_privileges)));
 	switch (Game::getGame().getCurrentPlayer().getRoyalCardNumber()) {
 	case 0: {
@@ -670,15 +670,15 @@ void MainWindow::updateBoard() {
 
 	Board::getBoard().printArray();
 
-	// Update des pointeurs jeton
-	for (int i = 0; i < NJETONS; i++) {
-		board->getJetons()[i]->setJeton(
+	// Update token pointers
+	for (int i = 0; i < NTOKENS; i++) {
+		board->getTokens()[i]->setToken(
 		    Board::getBoard().getBoardCaseByIndex(i));
 	}
 
-	// Update des visuels
-	for (int i = 0; i < NJETONS; i++) {
-		board->getJetons()[i]->updateAppearance();
+	// Update visuals
+	for (int i = 0; i < NTOKENS; i++) {
+		board->getTokens()[i]->updateAppearance();
 	}
 }
 
@@ -696,7 +696,7 @@ void MainWindow::updatePrivileges() {
 		board->getPrivilege3()->setIconSize(board->getPrivilege3()->size());
 		break;
 	case 1:
-		// qDebug() << jeton->getVisual();
+		// qDebug() << token->getVisual();
 		board->getPrivilege1()->setIcon(icon);
 		board->getPrivilege1()->setIconSize(board->getPrivilege1()->size());
 		board->getPrivilege2()->setIcon(QIcon());
@@ -705,24 +705,24 @@ void MainWindow::updatePrivileges() {
 		board->getPrivilege3()->setIconSize(board->getPrivilege3()->size());
 		break;
 	case 2:
-		// qDebug() << jeton->getVisual();
+		// qDebug() << token->getVisual();
 		board->getPrivilege1()->setIcon(icon);
 		board->getPrivilege1()->setIconSize(board->getPrivilege1()->size());
-		// qDebug() << jeton->getVisual();
+		// qDebug() << token->getVisual();
 		board->getPrivilege2()->setIcon(icon);
 		board->getPrivilege2()->setIconSize(board->getPrivilege2()->size());
-		// qDebug() << jeton->getVisual();
+		// qDebug() << token->getVisual();
 		board->getPrivilege3()->setIcon(QIcon());
 		board->getPrivilege3()->setIconSize(board->getPrivilege3()->size());
 		break;
 	case 3:
-		// qDebug() << jeton->getVisual();
+		// qDebug() << token->getVisual();
 		board->getPrivilege1()->setIcon(icon);
 		board->getPrivilege1()->setIconSize(board->getPrivilege1()->size());
-		// qDebug() << jeton->getVisual();
+		// qDebug() << token->getVisual();
 		board->getPrivilege2()->setIcon(icon);
 		board->getPrivilege2()->setIconSize(board->getPrivilege2()->size());
-		// qDebug() << jeton->getVisual();
+		// qDebug() << token->getVisual();
 		board->getPrivilege3()->setIcon(icon);
 		board->getPrivilege3()->setIconSize(board->getPrivilege3()->size());
 		break;
@@ -757,163 +757,162 @@ void MainWindow::showInfo(const string &string) {
 	dialog.exec();
 }
 
-void MainWindow::jetonClicked(Qt_jeton *j) {
+void MainWindow::tokenClicked(Qt_token *j) {
 
 	if (j != nullptr && j->getToken() != nullptr) {
-		qDebug() << "Token cliqué : " << j->getToken()->getVisual();
-		setIndiceJetonClick(j->getIndex());
+		qDebug() << "Token clicked: " << j->getToken()->getVisual();
+		setTokenClickIndex(j->getIndex());
 	} else {
-		setIndiceJetonClick(-1);
+		setTokenClickIndex(-1);
 	}
 	j->setDisabled(true);
 
-	MainWindow::getMainWindow().jetonActionDone();
+	MainWindow::getMainWindow().tokenActionDone();
 }
 
-void MainWindow::carteClicked(Qt_carte *c) {
+void MainWindow::cardClicked(Qt_card *c) {
 	if (c != nullptr)
-		qDebug() << "Carte cliquée : " << c->getIndex() << c->getReserved();
+		qDebug() << "Card clicked: " << c->getIndex() << c->getReserved();
 	else
 		qDebug() << "nullptr card";
 	if (c != nullptr and (c->getCard() != nullptr || c->getIndex() < 0))
-		setDerniereCarteClick(c);
+		setLastCardClick(c);
 	else
 		qDebug() << "card click problem";
-	MainWindow::getMainWindow().carteActionDone();
+	MainWindow::getMainWindow().cardActionDone();
 }
 
 void MainWindow::deactivateButtons() {
-	// Jetons
+	// Tokens
 	int nbmax = Token::getMaxTokenNumber();
 	for (int i = 0; i < nbmax; i++) {
-		board->getPlateau().getJetons()[i]->setEnabled(false);
+		board->getBoard().getTokens()[i]->setEnabled(false);
 	}
 
 	// Draw 1
 	for (int i = 0; i < 5; i++) {
-		getTirages()->getTier1()[i]->setEnabled(false);
+		getDraws()->getTier1()[i]->setEnabled(false);
 	}
 
 	// Draw 2
 	for (int i = 0; i < 4; i++) {
-		getTirages()->getTier2()[i]->setEnabled(false);
+		getDraws()->getTier2()[i]->setEnabled(false);
 	}
 
 	// Draw 3
 	for (int i = 0; i < 3; i++) {
-		getTirages()->getTier3()[i]->setEnabled(false);
+		getDraws()->getTier3()[i]->setEnabled(false);
 	}
 
-	// Draw cards royales
+	// Royal cards draw
 	for (int i = 0; i < 4; i++) {
-		getTirages()->getRoyalCards()[i]->setEnabled(false);
+		getDraws()->getRoyalCards()[i]->setEnabled(false);
 	}
 
-	// Les 3 pioches
+	// The 3 decks
 
-	getTirages()->getDeck1()->setEnabled(false);
-	getTirages()->getDeck2()->setEnabled(false);
-	getTirages()->getDeck3()->setEnabled(false);
+	getDraws()->getDeck1()->setEnabled(false);
+	getDraws()->getDeck2()->setEnabled(false);
+	getDraws()->getDeck3()->setEnabled(false);
 
-	// Déactiver les cards reservées des 2 joueurs
+	// Deactivate reserved cards of both players
 }
 
 void MainWindow::activateTokens() {
-	// Jetons
+	// Tokens
 	int nbmax = Token::getMaxTokenNumber();
 	for (int i = 0; i < nbmax; i++) {
-		board->getPlateau().getJetons()[i]->setEnabled(true);
+		board->getBoard().getTokens()[i]->setEnabled(true);
 	}
 }
 
 void MainWindow::activateForReserve() {
 	// Draw 1
-	for (int i = 0; i < Game::getGame().getFirstDraw()->getTirage().size();
+	for (int i = 0; i < Game::getGame().getFirstDraw()->getDrawCards().size();
 	     i++) {
-		getTirages()->getTier1()[i]->setEnabled(true);
+		getDraws()->getTier1()[i]->setEnabled(true);
 	}
 
 	// Draw 2
-	for (int i = 0; i < Game::getGame().getSecondDraw()->getTirage().size();
+	for (int i = 0; i < Game::getGame().getSecondDraw()->getDrawCards().size();
 	     i++) {
-		getTirages()->getTier2()[i]->setEnabled(true);
+		getDraws()->getTier2()[i]->setEnabled(true);
 	}
 
-	for (int i = 0; i < Game::getGame().getThirdDraw()->getTirage().size();
+	for (int i = 0; i < Game::getGame().getThirdDraw()->getDrawCards().size();
 	     i++) {
-		getTirages()->getTier3()[i]->setEnabled(true);
+		getDraws()->getTier3()[i]->setEnabled(true);
 	}
 
-	// Les 3 pioches
+	// The 3 decks
 
 	if (!Game::getGame().getDeck(1)->isEmpty())
-		getTirages()->getDeck1()->setEnabled(true);
+		getDraws()->getDeck1()->setEnabled(true);
 	if (!Game::getGame().getDeck(2)->isEmpty())
-		getTirages()->getDeck2()->setEnabled(true);
+		getDraws()->getDeck2()->setEnabled(true);
 	if (!Game::getGame().getDeck(3)->isEmpty())
-		getTirages()->getDeck3()->setEnabled(true);
+		getDraws()->getDeck3()->setEnabled(true);
 }
 
 void MainWindow::activateForBuy() {
 	qDebug() << "ACtiate for buy";
 	// Draw 1
-	for (int i = 0; i < Game::getGame().getFirstDraw()->getTirage().size();
+	for (int i = 0; i < Game::getGame().getFirstDraw()->getDrawCards().size();
 	     i++) {
-		getTirages()->getTier1()[i]->setEnabled(true);
+		getDraws()->getTier1()[i]->setEnabled(true);
 	}
 
 	// Draw 2
-	for (int i = 0; i < Game::getGame().getSecondDraw()->getTirage().size();
+	for (int i = 0; i < Game::getGame().getSecondDraw()->getDrawCards().size();
 	     i++) {
-		getTirages()->getTier2()[i]->setEnabled(true);
+		getDraws()->getTier2()[i]->setEnabled(true);
 	}
 
 	// Draw 3
-	for (int i = 0; i < Game::getGame().getThirdDraw()->getTirage().size();
+	for (int i = 0; i < Game::getGame().getThirdDraw()->getDrawCards().size();
 	     i++) {
-		getTirages()->getTier3()[i]->setEnabled(true);
+		getDraws()->getTier3()[i]->setEnabled(true);
 	}
 
-	// Cartes reservées par le player en question activées dans le constructeur
-	// de la popup
+	// Reserved cards of the player in question activated in the popup constructor
 }
 
 void MainWindow::activateForRoyalCard() {
-	// Seul les boutons des cards non-nulles sont activés !!! a vérifier !!!
+	// Only non-null card buttons are activated!!! to verify!!!
 
 	for (int i = 0; i < Game::getGame().getRoyalCards().size(); i++) {
-		getTirages()->getRoyalCards()[i]->setEnabled(true);
+		getDraws()->getRoyalCards()[i]->setEnabled(true);
 	}
 }
 
-void MainWindow::updateQuiJoue() {
-	quijoue->setText(
-	    QString::fromStdString("C'est à " +
+void MainWindow::updateWhoPlays() {
+	whoPlays->setText(
+	    QString::fromStdString("It's " +
 	                           Game::getGame().getCurrentPlayer().getName()) +
-	    " de jouer");
+	    "'s turn");
 }
 
 void MainWindow::colorChoice(Color *c, int *nb) {
-	// Créer la fenêtre color choice et recup c et nb
-	popupCouleur dialog(this);
+	// Create the color choice window and get c and nb
+	ColorPopup dialog(this);
 	if (dialog.exec() == QDialog::Accepted) {
 		*c = dialog.getColor();
 		*nb = dialog.getNb();
 	}
 }
 
-void MainWindow::activateJetonColor(const Color &c) {
-	// Jetons
+void MainWindow::activateTokenColor(const Color &c) {
+	// Tokens
 	int nbmax = Token::getMaxTokenNumber();
 	for (int i = 0; i < nbmax; i++) {
-		if (board->getPlateau().getJetons()[i]->getToken() != nullptr &&
-		    board->getPlateau().getJetons()[i]->getToken()->getColor() == c)
-			board->getPlateau().getJetons()[i]->setEnabled(true);
+		if (board->getBoard().getTokens()[i]->getToken() != nullptr &&
+		    board->getBoard().getTokens()[i]->getToken()->getColor() == c)
+			board->getBoard().getTokens()[i]->setEnabled(true);
 	}
 }
 
 void MainWindow::colorJoker(colorBonus *b) {
-	// Créer la fenêtre color choice et recup c et nb
+	// Create the color choice window and get c and nb
 	popupJoker dialog(this);
 	if (dialog.exec() == QDialog::Accepted) {
 		*b = dialog.getColor();
@@ -926,7 +925,7 @@ void MainWindow::showStats() {
 	vector<Match *> matches = History::getHistory().getMatches();
 	std::string txt = "";
 	if (matches.size() != 0) {
-		txt += "Historique des matchs : ";
+		txt += "Match history: ";
 		txt += "\n\n";
 
 		for (int i = 0; i < matches.size(); i++) {
@@ -938,15 +937,15 @@ void MainWindow::showStats() {
 			txt += " - ";
 			txt += std::to_string(matches[i]->getScoreOpponent());
 			txt += "\n";
-			txt += "      Player winner :    ";
+			txt += "      Winning player:    ";
 			txt += matches[i]->getWinner()->getName();
 			txt += "\n";
-			txt += "      Player perdant :    ";
+			txt += "      Losing player:    ";
 			txt += matches[i]->getOpponent()->getName();
 			txt += "\n";
 		}
 	} else {
-		txt += "Pas de match dans l'historique !";
+		txt += "No matches in history!";
 	}
 
 	QLabel *text = new QLabel(QString::fromStdString(txt));
@@ -992,11 +991,11 @@ void MainWindow::showStatsPlayers() {
 
 	std::string txt = "";
 	if (matches.size() != 0) {
-		txt += "Nombre de parties jouées :  ";
+		txt += "Number of games played:  ";
 		txt += to_string(matches.size());
 		txt += "\n";
 
-		txt += "Nombre de points pour gagner en moyenne : ";
+		txt += "Average points to win: ";
 		float winner_points = 0, loser_points = 0;
 		for (int i = 0; i < matches.size(); ++i) {
 			winner_points += (float)matches[i]->getScoreWinner();
@@ -1006,63 +1005,63 @@ void MainWindow::showStatsPlayers() {
 		loser_points = loser_points / matches.size();
 		txt += to_string_with_precision(winner_points, 2);
 		txt += "\n";
-		txt += "Nombre de points des perdants en moyenne : ";
+		txt += "Average loser points: ";
 		txt += to_string_with_precision(loser_points, 2);
 		txt += "\n";
 
 		txt += "\n\n";
 
-		txt += "Statistique des joueurs  ";
+		txt += "Player statistics  ";
 		txt += "\n\n";
-		txt += "Nombre total de joueurs : ";
+		txt += "Total number of players: ";
 		txt += std::to_string(History::getHistory().getNbPlayers());
 		txt += "\n";
 		for (int i = 0; i < matches.size(); i++) {
-			// ici pour les statistiques si on a pas déjà ajouté la personne
-			// donc si son name n'est pas encore dans le tableau
+			// here for the statistics if we haven't already added the person
+			// i.e. if their name is not yet in the array
 
 			if (!inside(matches[i]->getWinner()->getName(), names)) {
-				// alors on affiche les stats du player
+				// then display the player's stats
 				txt += "\n";
 				txt += "  Player : ";
 				txt += matches[i]->getWinner()->getName();
 				txt += "\n";
-				txt += "    Nombre de matchs joués : ";
+				txt += "    Number of matches played: ";
 				txt += std::to_string(matches[i]->getWinner()->getPlayed());
 				txt += "\n";
-				txt += "    Nombre de matches gagnés : ";
+				txt += "    Number of matches won: ";
 				txt += std::to_string(matches[i]->getWinner()->getWins());
-				float moy = (float)(matches[i]->getWinner()->getWins()) /
+				float avg = (float)(matches[i]->getWinner()->getWins()) /
 				            (float)(matches[i]->getWinner()->getPlayed());
-				txt += " -    Pourcentage de victoire : ";
-				txt += to_string_with_precision(moy * 100, 2);
+				txt += " -    Win percentage: ";
+				txt += to_string_with_precision(avg * 100, 2);
 				txt += "%";
 				txt += "\n";
 				names.push_back(matches[i]->getWinner()->getName());
 			}
 
 			if (!inside(matches[i]->getOpponent()->getName(), names)) {
-				// alors on affiche les stats du player
+				// then display the player's stats
 				txt += "\n";
 				txt += "  Player : ";
 				txt += matches[i]->getOpponent()->getName();
 				txt += "\n";
-				txt += "    Nombre de matchs joués : ";
+				txt += "    Number of matches played: ";
 				txt += std::to_string(matches[i]->getOpponent()->getPlayed());
 				txt += "\n";
-				txt += "    Nombre de matches gagnés : ";
+				txt += "    Number of matches won: ";
 				txt += std::to_string(matches[i]->getOpponent()->getWins());
-				float moy = (float)(matches[i]->getOpponent()->getWins()) /
+				float avg = (float)(matches[i]->getOpponent()->getWins()) /
 				            (float)(matches[i]->getOpponent()->getPlayed());
-				txt += " -    Pourcentage de victoire : ";
-				txt += to_string_with_precision(moy * 100, 2);
+				txt += " -    Win percentage: ";
+				txt += to_string_with_precision(avg * 100, 2);
 				txt += "%";
 				txt += "\n";
 				names.push_back(matches[i]->getOpponent()->getName());
 			}
 		}
 	} else {
-		txt += "Pas de statistiques des joueurs";
+		txt += "No player statistics";
 	}
 
 	QLabel *text = new QLabel(QString::fromStdString(txt));

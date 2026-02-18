@@ -1,19 +1,19 @@
-#ifndef QT_POPUP_TIRAGEOUPIOCHE_H
-#define QT_POPUP_TIRAGEOUPIOCHE_H
+#ifndef QT_POPUP_DRAW_OR_DECK_H
+#define QT_POPUP_DRAW_OR_DECK_H
 
 #include <QDialog>
 #include <QLabel>
 #include <QPushButton>
 #include <QVBoxLayout>
 
-class popupTiragePioche : public QDialog {
+class DrawDeckPopup : public QDialog {
 	Q_OBJECT
 
   private:
 	char userChoice;
 
   public:
-	popupTiragePioche(QWidget *parent = nullptr) : QDialog(parent) {
+	DrawDeckPopup(QWidget *parent = nullptr) : QDialog(parent) {
 		QVBoxLayout *layout = new QVBoxLayout(this);
 
 		QPushButton *draw = new QPushButton("Draw", this);
@@ -36,4 +36,4 @@ class popupTiragePioche : public QDialog {
 	}
 };
 
-#endif // QT_POPUP_TIRAGEOUPIOCHE_H
+#endif // QT_POPUP_DRAW_OR_DECK_H

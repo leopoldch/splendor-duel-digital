@@ -4,13 +4,13 @@
 #include <QPixmap>
 #include <QVBoxLayout>
 
-Qt_Tirages::Qt_Tirages(QWidget *parent) : QWidget(parent) {
+Qt_Draws::Qt_Draws(QWidget *parent) : QWidget(parent) {
 	QVBoxLayout *mainLayout = new QVBoxLayout(this);
 	QVBoxLayout *verticalLayout = new QVBoxLayout(this);
 
-	deck1 = new Qt_carte(this);
-	deck2 = new Qt_carte(this);
-	deck3 = new Qt_carte(this);
+	deck1 = new Qt_card(this);
+	deck2 = new Qt_card(this);
+	deck3 = new Qt_card(this);
 
 	//    deck1->setIndice(-1);
 	//    deck2->setIndice(-2);
@@ -37,17 +37,17 @@ Qt_Tirages::Qt_Tirages(QWidget *parent) : QWidget(parent) {
 	mainLayout->addLayout(verticalLayout);
 }
 
-void Qt_Tirages::setupTierLayout(QHBoxLayout *&layout,
-                                 std::vector<Qt_carte *> &cards, int cardCount,
-                                 Qt_carte *deck) {
+void Qt_Draws::setupTierLayout(QHBoxLayout *&layout,
+                                 std::vector<Qt_card *> &cards, int cardCount,
+                                 Qt_card *deck) {
 	layout = new QHBoxLayout(this);
 
 	layout->setSpacing(0);
 	layout->setContentsMargins(0, 0, 0, 0);
 
 	for (int i = 0; i < cardCount; ++i) {
-		Qt_carte *card = new Qt_carte(this);
-		card->setReservee(false);
+		Qt_card *card = new Qt_card(this);
+		card->setReserved(false);
 		card->setIndice(i);
 		card->setStyleSheet("background: transparent;");
 		card->setFixedSize(75, 105);
@@ -77,38 +77,38 @@ void Qt_Tirages::setupTierLayout(QHBoxLayout *&layout,
 	}
 }
 
-void Qt_Tirages::connectCartes() {
+void Qt_Draws::connectCards() {
 	qDebug() << "ACtiate for buy";
 	// Draw 1
 	for (int i = 0; i < 5; i++) {
-		connect(this->getTier1()[i], &Qt_carte::carteClicked,
-		        &MainWindow::getMainWindow(), &MainWindow::carteClicked);
+		connect(this->getTier1()[i], &Qt_card::cardClicked,
+		        &MainWindow::getMainWindow(), &MainWindow::cardClicked);
 	}
 
 	// Draw 2
 	for (int i = 0; i < 4; i++) {
-		connect(this->getTier2()[i], &Qt_carte::carteClicked,
-		        &MainWindow::getMainWindow(), &MainWindow::carteClicked);
+		connect(this->getTier2()[i], &Qt_card::cardClicked,
+		        &MainWindow::getMainWindow(), &MainWindow::cardClicked);
 	}
 
 	// Draw 3
 	for (int i = 0; i < 3; i++) {
-		connect(this->getTier3()[i], &Qt_carte::carteClicked,
-		        &MainWindow::getMainWindow(), &MainWindow::carteClicked);
+		connect(this->getTier3()[i], &Qt_card::cardClicked,
+		        &MainWindow::getMainWindow(), &MainWindow::cardClicked);
 	}
 
 	// Draw cards royales
 	for (int i = 0; i < 4; i++) {
-		connect(this->getRoyalCards()[i], &Qt_carte::carteClicked,
-		        &MainWindow::getMainWindow(), &MainWindow::carteClicked);
+		connect(this->getRoyalCards()[i], &Qt_card::cardClicked,
+		        &MainWindow::getMainWindow(), &MainWindow::cardClicked);
 	}
-	// Cartes reservées
+	// Reserved cards
 
 	// Decks
-	connect(this->getDeck1(), &Qt_carte::carteClicked,
-	        &MainWindow::getMainWindow(), &MainWindow::carteClicked);
-	connect(this->getDeck2(), &Qt_carte::carteClicked,
-	        &MainWindow::getMainWindow(), &MainWindow::carteClicked);
-	connect(this->getDeck3(), &Qt_carte::carteClicked,
-	        &MainWindow::getMainWindow(), &MainWindow::carteClicked);
+	connect(this->getDeck1(), &Qt_card::cardClicked,
+	        &MainWindow::getMainWindow(), &MainWindow::cardClicked);
+	connect(this->getDeck2(), &Qt_card::cardClicked,
+	        &MainWindow::getMainWindow(), &MainWindow::cardClicked);
+	connect(this->getDeck3(), &Qt_card::cardClicked,
+	        &MainWindow::getMainWindow(), &MainWindow::cardClicked);
 }

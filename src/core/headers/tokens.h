@@ -1,5 +1,5 @@
-#ifndef LO21_SPLENDOR_DUEL_JETONS_H
-#define LO21_SPLENDOR_DUEL_JETONS_H
+#ifndef LO21_SPLENDOR_DUEL_TOKENS_H
+#define LO21_SPLENDOR_DUEL_TOKENS_H
 #include "Exception.h"
 #include "card.h"
 #include <iostream>
@@ -29,20 +29,20 @@ class Token {
 	const std::string visual;
 
   public:
-	Token(int id, const Color &coul, std::string visual)
-	    : id(id), color(coul), visual(visual) {
+	Token(int id, const Color &c, std::string visual)
+	    : id(id), color(c), visual(visual) {
 
 		if ((id < 1) || (id > Token::getMaxTokenNumber())) {
-			throw SplendorException("Mauvais id de tokens!");
+			throw SplendorException("Bad token id!");
 		}
 
-		switch (coul) {
+		switch (c) {
 		case Color::red: {
 			if (red_number < max_red) {
 				red_number++;
 			} else {
 				throw SplendorException(
-				    "Impossible de créer plus de tokens red!");
+				    "Cannot create more red tokens!");
 			}
 			break;
 		}
@@ -51,7 +51,7 @@ class Token {
 				blue_number++;
 			} else {
 				throw SplendorException(
-				    "Impossible de créer plus de tokens blue!");
+				    "Cannot create more blue tokens!");
 			}
 			break;
 		}
@@ -60,7 +60,7 @@ class Token {
 				green_number++;
 			} else {
 				throw SplendorException(
-				    "Impossible de créer plus de tokens green!");
+				    "Cannot create more green tokens!");
 			}
 			break;
 		}
@@ -69,7 +69,7 @@ class Token {
 				white_number++;
 			} else {
 				throw SplendorException(
-				    "Impossible de créer plus de tokens white!");
+				    "Cannot create more white tokens!");
 			}
 			break;
 		}
@@ -78,7 +78,7 @@ class Token {
 				black_number++;
 			} else {
 				throw SplendorException(
-				    "Impossible de créer plus de tokens black!");
+				    "Cannot create more black tokens!");
 			}
 			break;
 		}
@@ -87,7 +87,7 @@ class Token {
 				perl_number++;
 			} else {
 				throw SplendorException(
-				    "Impossible de créer plus de tokens perl!");
+				    "Cannot create more pearl tokens!");
 			}
 			break;
 		}
@@ -96,12 +96,12 @@ class Token {
 				gold_number++;
 			} else {
 				throw SplendorException(
-				    "Impossible de créer plus de tokens or!");
+				    "Cannot create more gold tokens!");
 			}
 			break;
 		}
 		default: {
-			throw SplendorException("Color inconnue");
+			throw SplendorException("Unknown color");
 			break;
 		}
 		}
@@ -155,8 +155,8 @@ class Token {
 		}
 		}
 	}
-	Token &operator=(const Token &jet) = delete;
-	Token(const Token &jet) = delete;
+	Token &operator=(const Token &tok) = delete;
+	Token(const Token &tok) = delete;
 
 	const std::string getVisual() const { return visual; }
 
@@ -165,6 +165,16 @@ class Token {
 	static int getMaxTokenNumber() {
 		return max_blue + max_white + max_gold + max_black + max_perl +
 		       max_red + max_green;
+	}
+
+	static void resetCounters() {
+		red_number = 0;
+		blue_number = 0;
+		green_number = 0;
+		white_number = 0;
+		black_number = 0;
+		perl_number = 0;
+		gold_number = 0;
 	}
 
 	json toJson(const int place = -1) const {
@@ -176,11 +186,11 @@ class Token {
 	}
 };
 
-inline ostream &operator<<(ostream &f, const Token &jet) {
-	f << "id: " << jet.getId() << "; color: " << toString(jet.getColor());
+inline ostream &operator<<(ostream &f, const Token &tok) {
+	f << "id: " << tok.getId() << "; color: " << toString(tok.getColor());
 	return f;
 }
 
-vector<const Token *> initJetons();
+vector<const Token *> initTokens();
 
-#endif // LO21_SPLENDOR_DUEL_JETONS_H
+#endif // LO21_SPLENDOR_DUEL_TOKENS_H

@@ -3,7 +3,7 @@
 #include <string>
 #include <time.h>
 
-// condition pour savoir si le game est terminé à chaque tour on check ?
+// condition to check if the game is over at each turn?
 
 void Game::nextRound(bool replay) {
 	if (who_plays->victoryConditions()) {
@@ -22,6 +22,7 @@ const bool Game::isFinished() { return is_finished; }
 StrategyPlayer &Game::getPlayerRound() { return *who_plays; }
 
 Game::Game() {
+	Token::resetCounters();
 
 	Bag::get();
 
@@ -74,14 +75,14 @@ Game::Game() {
 	Board::getBoard();
 	Board::getBoard().fill(Bag::get());
 
-	// construceur cards
+	// cards constructor
 	jewelry_cards = initJewelryCards();
 	royal_cards = initRoyalCards();
 
-	// constructeur privileges
+	// privileges constructor
 	privileges = initPrivileges();
 
-	// pioches :
+	// decks:
 	deck1 = new Deck(1);
 	deck2 = new Deck(2);
 	deck3 = new Deck(3);
@@ -131,8 +132,8 @@ Game::Handler Game::handler;
 
 Game::~Game() {
 
-	for (auto jeton : tokens) {
-		delete jeton;
+	for (auto token : tokens) {
+		delete token;
 	}
 	tokens.clear();
 
@@ -159,13 +160,13 @@ Game::~Game() {
 	delete draw2;
 	delete draw3;
 
-	// Déstruction bag
+	// Destroy bag
 	Bag::free();
 
-	// Déstruction board
+	// Destroy board
 	Board::free();
 
-	// Détruire player et ses privilèges et cards royales
+	// Destroy player and its privileges and royal cards
 	delete who_plays;
 	delete opponent;
 };

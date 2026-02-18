@@ -6,33 +6,33 @@
 
 popupJoker::popupJoker(QWidget *parent) : QDialog(parent) {
 
-	QLabel *typeLabel = new QLabel("Couleur :", this);
+	QLabel *typeLabel = new QLabel("Color:", this);
 	comboBox = new QComboBox(this);
 
-	int bonus_blanc =
+	int bonus_white =
 	    Game::getGame().getCurrentPlayer().calculateBonus(colorBonus::white);
-	int bonus_bleu =
+	int bonus_blue =
 	    Game::getGame().getCurrentPlayer().calculateBonus(colorBonus::blue);
-	int bonus_rouge =
+	int bonus_red =
 	    Game::getGame().getCurrentPlayer().calculateBonus(colorBonus::red);
-	int bonus_vert =
+	int bonus_green =
 	    Game::getGame().getCurrentPlayer().calculateBonus(colorBonus::green);
-	int bonus_noir =
+	int bonus_black =
 	    Game::getGame().getCurrentPlayer().calculateBonus(colorBonus::black);
 
-	if (bonus_blanc > 0) {
+	if (bonus_white > 0) {
 		comboBox->addItem("White");
 	}
-	if (bonus_bleu > 0) {
+	if (bonus_blue > 0) {
 		comboBox->addItem("Blue");
 	}
-	if (bonus_rouge > 0) {
+	if (bonus_red > 0) {
 		comboBox->addItem("Red");
 	}
-	if (bonus_vert > 0) {
+	if (bonus_green > 0) {
 		comboBox->addItem("Green");
 	}
-	if (bonus_noir > 0) {
+	if (bonus_black > 0) {
 		comboBox->addItem("Black");
 	}
 
@@ -42,15 +42,15 @@ popupJoker::popupJoker(QWidget *parent) : QDialog(parent) {
 	layout->addWidget(typeLabel);
 	layout->addWidget(comboBox);
 
-	setWindowTitle("Choix couleur");
+	setWindowTitle("Color choice");
 
 	connect(submitButton, &QPushButton::clicked, this,
 	        &popupJoker::onSubmitClicked);
 }
 
 void popupJoker::onSubmitClicked() {
-	std::string coul = comboBox->currentText().toStdString();
-	setColor(stringToBonus(coul));
+	std::string colorStr = comboBox->currentText().toStdString();
+	setColor(stringToBonus(colorStr));
 
 	accept();
 }

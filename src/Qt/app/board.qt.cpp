@@ -2,38 +2,38 @@
 #include "main_window.qt.h"
 #include "token_view.qt.h"
 
-Qt_Plateau::Handler Qt_Plateau::handler;
+Qt_Board::Handler Qt_Board::handler;
 
-Qt_Plateau::~Qt_Plateau() {
-	// Rien
+Qt_Board::~Qt_Board() {
+	// Nothing
 }
 
-Qt_Plateau::Qt_Plateau(QWidget *parent) : QWidget(parent) {
+Qt_Board::Qt_Board(QWidget *parent) : QWidget(parent) {
 	layout = new QGridLayout(this);
 
 	layout->setHorizontalSpacing(7);
 	layout->setVerticalSpacing(18);
 
-	const int jetonWidth = 64 * 0.75;  // 4 gaps, 5 tokens
-	const int jetonHeight = 64 * 0.75; // 4 gaps, 5 tokens
+	const int tokenWidth = 64 * 0.75;  // 4 gaps, 5 tokens
+	const int tokenHeight = 64 * 0.75; // 4 gaps, 5 tokens
 
 	// Setup card grid
-	for (int i = 0; i < NJETONS; ++i) {
-		Qt_jeton *jeton = new Qt_jeton(this);
-		jeton->setIndice(i);
-		jeton->setStyleSheet("background: transparent;");
-		jeton->setFixedSize(jetonWidth, jetonHeight);
-		layout->addWidget(jeton, i / 5, i % 5);
-		tokens.push_back(jeton);
+	for (int i = 0; i < NTOKENS; ++i) {
+		Qt_token *token = new Qt_token(this);
+		token->setIndice(i);
+		token->setStyleSheet("background: transparent;");
+		token->setFixedSize(tokenWidth, tokenHeight);
+		layout->addWidget(token, i / 5, i % 5);
+		tokens.push_back(token);
 	}
 
 	// Setup privileges
 	privilegesLayout = new QGridLayout(this);
 	privilegesLayout->setHorizontalSpacing(4);
 
-	privilege1 = new Qt_jeton(this);
-	privilege2 = new Qt_jeton(this);
-	privilege3 = new Qt_jeton(this);
+	privilege1 = new Qt_token(this);
+	privilege2 = new Qt_token(this);
+	privilege3 = new Qt_token(this);
 
 	const int privilegeSize = 60 * 0.75;
 	privilege1->setFixedSize(privilegeSize, privilegeSize);
@@ -56,10 +56,10 @@ Qt_Plateau::Qt_Plateau(QWidget *parent) : QWidget(parent) {
 
 	setFixedSize(371 * 0.75,
 	             446 * 0.75); // Adjust size based on number of rows, columns,
-	                          // and jeton size
+	                          // and token size
 }
 
-void Qt_Plateau::paintEvent(QPaintEvent *event) {
+void Qt_Board::paintEvent(QPaintEvent *event) {
 	QPainter painter(this);
 
 	QPixmap backgroundPixmap("../src/assets/rest_detoured/Board.png");
@@ -75,9 +75,9 @@ void Qt_Plateau::paintEvent(QPaintEvent *event) {
 	QWidget::paintEvent(event);
 }
 
-void Qt_Plateau::connectJetons() {
-	for (int i = 0; i < NJETONS; i++) {
-		connect(this->tokens[i], &Qt_jeton::jetonClicked,
-		        &MainWindow::getMainWindow(), &MainWindow::jetonClicked);
+void Qt_Board::connectTokens() {
+	for (int i = 0; i < NTOKENS; i++) {
+		connect(this->tokens[i], &Qt_token::tokenClicked,
+		        &MainWindow::getMainWindow(), &MainWindow::tokenClicked);
 	}
 }

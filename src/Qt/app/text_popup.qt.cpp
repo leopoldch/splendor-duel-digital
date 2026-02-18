@@ -50,6 +50,6 @@ void InputPopup::onSubmitClicked() {
 		accept();
 	} catch (SplendorException &except) {
 		MainWindow::getMainWindow().triggerInfo(
-		    "veuillez remplir les deux champs correctement");
+		    "please fill in both fields correctly");
 	}
 }

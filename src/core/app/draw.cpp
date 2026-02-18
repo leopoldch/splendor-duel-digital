@@ -1,6 +1,6 @@
 #include "draw.h"
 
-int Draw::draw_count = 0; // initialisation du compteur à 0
+int Draw::draw_count = 0; // counter initialization to 0
 
 void Draw::fill() {
 
@@ -14,7 +14,7 @@ void Draw::fill() {
 	}
 }
 
-void testTirage() {
+void testDraw() {
 
 	Deck deck1 = Deck(1);
 	Deck deck2 = Deck(2);

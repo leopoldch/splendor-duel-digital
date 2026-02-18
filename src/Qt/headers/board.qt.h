@@ -1,5 +1,5 @@
-#ifndef QT_PLATEAU_H
-#define QT_PLATEAU_H
+#ifndef QT_BOARD_H
+#define QT_BOARD_H
 
 #include "token_view.qt.h"
 #include <QGridLayout>
@@ -7,34 +7,34 @@
 #include <QLabel>
 #include <QWidget>
 
-#define NJETONS 25
+#define NTOKENS 25
 
-class Qt_Plateau : public QWidget {
+class Qt_Board : public QWidget {
 	Q_OBJECT;
 
   public:
-	void connectJetons();
+	void connectTokens();
 
-	const std::vector<Qt_jeton *> &getJetons() const { return tokens; }
+	const std::vector<Qt_token *> &getTokens() const { return tokens; }
 
-	static Qt_Plateau &getPlateau() {
+	static Qt_Board &getBoard() {
 		if (handler.instance == nullptr)
-			handler.instance = new Qt_Plateau();
+			handler.instance = new Qt_Board();
 		return *handler.instance;
 	}
 
-	void freePlateau() {
+	void freeBoard() {
 		delete handler.instance;
 		handler.instance = nullptr;
 	}
 
-	Qt_jeton *getPrivilege1() { return privilege1; }
-	Qt_jeton *getPrivilege2() { return privilege2; }
-	Qt_jeton *getPrivilege3() { return privilege3; }
+	Qt_token *getPrivilege1() { return privilege1; }
+	Qt_token *getPrivilege2() { return privilege2; }
+	Qt_token *getPrivilege3() { return privilege3; }
 
   private:
 	struct Handler {
-		Qt_Plateau *instance = nullptr;
+		Qt_Board *instance = nullptr;
 		~Handler() {
 			delete instance;
 			instance = nullptr;
@@ -42,18 +42,18 @@ class Qt_Plateau : public QWidget {
 	};
 
 	static Handler handler;
-	Qt_Plateau(QWidget *parent = nullptr);
-	~Qt_Plateau();
+	Qt_Board(QWidget *parent = nullptr);
+	~Qt_Board();
 
-	Qt_Plateau(const Qt_Plateau &) = delete;
-	Qt_Plateau &operator=(const Qt_Plateau &) = delete;
+	Qt_Board(const Qt_Board &) = delete;
+	Qt_Board &operator=(const Qt_Board &) = delete;
 
 	QGridLayout *layout;
 	QGridLayout *privilegesLayout;
-	std::vector<Qt_jeton *> tokens;
-	Qt_jeton *privilege1;
-	Qt_jeton *privilege2;
-	Qt_jeton *privilege3;
+	std::vector<Qt_token *> tokens;
+	Qt_token *privilege1;
+	Qt_token *privilege2;
+	Qt_token *privilege3;
 
   signals:
 	void clicked();
@@ -63,4 +63,4 @@ class Qt_Plateau : public QWidget {
 	void paintEvent(QPaintEvent *event) override;
 };
 
-#endif // QT_PLATEAU_H
+#endif // QT_BOARD_H

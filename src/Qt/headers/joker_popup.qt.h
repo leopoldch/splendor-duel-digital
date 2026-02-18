@@ -16,7 +16,7 @@ class popupJoker : public QDialog {
 	explicit popupJoker(QWidget *parent = nullptr);
 
 	const colorBonus getColor() const { return c; }
-	void setColor(const colorBonus &coul) { c = coul; }
+	void setColor(const colorBonus &bonus) { c = bonus; }
 
   private slots:
 	void onSubmitClicked();

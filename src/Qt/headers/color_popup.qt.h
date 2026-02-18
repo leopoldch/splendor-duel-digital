@@ -1,5 +1,5 @@
-#ifndef QT_POPUP_COULEUR_H
-#define QT_POPUP_COULEUR_H
+#ifndef QT_POPUP_COLOR_H
+#define QT_POPUP_COLOR_H
 
 #include "card.h"
 #include "game.h"
@@ -9,17 +9,17 @@
 #include <QPushButton>
 #include <QVBoxLayout>
 
-class popupCouleur : public QDialog {
+class ColorPopup : public QDialog {
 	Q_OBJECT
 
   public:
-	explicit popupCouleur(QWidget *parent = nullptr);
+	explicit ColorPopup(QWidget *parent = nullptr);
 
 	const int getNb() const { return nb; }
 	const Color getColor() const { return c; }
 
 	void setNb(int x) { nb = x; }
-	void setColor(const Color &coul) { c = coul; }
+	void setColor(const Color &color) { c = color; }
 
   private slots:
 	void onSubmitClicked();
@@ -34,4 +34,4 @@ class popupCouleur : public QDialog {
 	QPushButton *submitButton;
 };
 
-#endif // QT_POPUP_COULEUR_H
+#endif // QT_POPUP_COLOR_H

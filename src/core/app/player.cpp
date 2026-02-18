@@ -7,30 +7,30 @@
 #include <QMessageBox>
 
 using namespace std;
-/******************** Fonctions utilitaires ********************/
+/******************** Utility functions ********************/
 int positiveOrNull(int x) {
 	if (x < 0)
 		return 0;
 	return x;
 }
-/******************** Fonctions utilitaires ********************/
+/******************** Utility functions ********************/
 
 /******************** StrategyPlayer ********************/
 
-// constructeur destructeur
+// constructor destructor
 StrategyPlayer::StrategyPlayer(const string &name)
     : points_number(0), jewelry_cards_number(0), royal_cards_number(0),
       crown_number(0), privilege_number(0), name(name), token_number(0),
       reserved_jewelry_cards_number(0), games(0), games_won(0) {}
 
 StrategyPlayer::~StrategyPlayer() {
-	// Déstruction cards royales
+	// Destroy royal cards
 	for (auto royal_cards : royal_cards) {
 		delete royal_cards;
 	}
 	royal_cards.clear();
 
-	// Déstruction privilèges
+	// Destroy privileges
 	for (auto privilege : privileges) {
 		delete privilege;
 	}
@@ -67,10 +67,10 @@ void StrategyPlayer::withdrawTokens(const Color &c, int val) {
 	}
 
 	if (tmp > 0) {
-		throw SplendorException("Pas assez de tokens " + toString(c) +
-		                        " pour en supprimer plus ! ");
+		throw SplendorException("Not enough " + toString(c) +
+		                        " tokens to remove more!");
 	}
-	for (int j = val - 1; j >= 0; j--) { // erreur!
+	for (int j = val - 1; j >= 0; j--) { // error!
 		Bag::get().insertToken(tokens[tmp_tab[j]]);
 		tokens.erase(tokens.begin() + tmp_tab[j]);
 		token_number--;
@@ -82,7 +82,7 @@ void StrategyPlayer::withdrawTokens(const Color &c, int val) {
 
 // TODO: rename
 void StrategyPlayer::reserveCard(Draw *t, const int index) {
-	// reservation d'une card d'un draw
+	// reserve a card from a draw
 	unsigned int count = 0;
 	for (int i = 0; i < tokens.size(); ++i) {
 		if (tokens[i]->getColor() == Color::gold)
@@ -90,7 +90,7 @@ void StrategyPlayer::reserveCard(Draw *t, const int index) {
 	}
 	if (count == 0) {
 		throw SplendorException(
-		    "Le joueur n'a pas de jeton or en sa possession!");
+		    "The player does not have a gold token!");
 	}
 	const JewelryCard &tmp = t->getCard(index);
 	reserved_jewelry_cards.push_back(&tmp);
@@ -100,7 +100,7 @@ void StrategyPlayer::reserveCard(Draw *t, const int index) {
 
 // TODO: rename
 void StrategyPlayer::reserveCard(Deck *p) {
-	// reservation de la card au above de la deck
+	// reserve the card at the top of the deck
 	unsigned int count = 0;
 	for (int i = 0; i < tokens.size(); ++i) {
 		if (tokens[i]->getColor() == Color::gold)
@@ -108,7 +108,7 @@ void StrategyPlayer::reserveCard(Deck *p) {
 	}
 	if (count == 0) {
 		throw SplendorException(
-		    "Le player n'a pas de jeton or en sa possession!");
+		    "The player does not have a gold token!");
 	}
 	const JewelryCard &tmp = p->getCard();
 	reserved_jewelry_cards.push_back(&tmp);
@@ -118,25 +118,25 @@ void StrategyPlayer::reserveCard(Deck *p) {
 void StrategyPlayer::drawToken(int i) {
 
 	if (i > 24 || i < 0) {
-		throw SplendorException("Indice du board non valide ! ");
+		throw SplendorException("Invalid board index!");
 	}
 
 	const Token *tmp = Board::getBoard().getBoardCaseByIndex(i);
 	if (tmp == nullptr) {
-		throw SplendorException("Token déjà pris !");
+		throw SplendorException("Token already taken!");
 	}
 	tokens.push_back(tmp);
 	Board::getBoard().setTokenOnBoardByIndex(i, nullptr);
 	Board::getBoard().setCurrentNb(Board::getBoard().getCurrentNb() - 1);
-	std::cout << "Token acquis; nombre de tokens restants sur le board : "
+	std::cout << "Token acquired; remaining tokens on the board: "
 	          << Board::getBoard().getCurrentNb() << std::endl;
 	token_number++;
 }
 
 void StrategyPlayer::obtainRoyalCard(unsigned int i) {
-	// on prend une card dans le game
+	// take a card from the game
 	if (i > Game::getGame().getRoyalCards().size()) {
-		throw SplendorException("Carte non disponible");
+		throw SplendorException("Card not available");
 	}
 
 	const RoyalCard &tmp = Game::getGame().drawRoyalCard(i);
@@ -148,17 +148,17 @@ void StrategyPlayer::obtainRoyalCard(unsigned int i) {
 	    tmp, Game::getGame().getOpponent());
 }
 
-// Surcharge Qt
+// Qt overload
 void StrategyPlayer::obtainRoyalCard_qt(unsigned int i) {
-	// on prend une card dans le game
+	// take a card from the game
 	if (i > Game::getGame().getRoyalCards().size()) {
-		throw SplendorException("Carte non disponible");
+		throw SplendorException("Card not available");
 	}
 	// if (royalCardEligibility() == false) throw SplendorException("Pas
 	// eligible.");
 	const RoyalCard &tmp = Game::getGame().drawRoyalCard(i);
 	royal_cards.push_back(&tmp);
-	// ENLEVER DU game
+	// REMOVE FROM game
 	royal_cards_number++;
 	points_number += tmp.getPrestige();
 
@@ -183,9 +183,8 @@ bool StrategyPlayer::royalCardEligibility() {
 bool StrategyPlayer::jokerCardEligibility() {
 	unsigned int test = 0;
 	for (auto card : bought_jewelry_cards) {
-		// on test sur toutes les cards, à partir du moment où le player
-		// possède une card d'une color (bonus != nullopt) il peut acheter
-		// une card avec un bonus color
+		// test on all cards, as soon as the player owns a card of a color
+		// (bonus != nullopt) they can buy a card with a color bonus
 		if ((*card).getBonus() != nullopt) {
 			return true;
 		}
@@ -194,27 +193,26 @@ bool StrategyPlayer::jokerCardEligibility() {
 }
 
 void StrategyPlayer::obtainPrivilege() {
-	// on va chercher dans le draw des privilèges un privilège. (du board ou
-	// alors de ton opponent ? ) d'abord je regarde s'il y a des privilèges
-	// dans le game :
+	// get a privilege from the privilege draw. (from the board or from your
+	// opponent?) first check if there are privileges in the game:
 
 	if (privilege_number == Privilege::getMaxInstance()) {
 		throw SplendorException(
-		    "Vous avez déjà le nombre maximum autorisé de privilège!");
+		    "You already have the maximum allowed number of privileges!");
 	}
 	if (Game::getGame().getPrivilegeNumber() == 0) {
-		// si l'opponent a tous les privilèges
+		// if the opponent has all the privileges
 		if (this == &Game::getGame().getCurrentPlayer()) {
-			// si le player qui obtient le privilège est celui dont c'est le
-			// tour, on prend à l'opponent
+			// if the player obtaining the privilege is the one whose turn it
+			// is, take from the opponent
 			Game::getGame().getOpponent().withdrawPrivilege();
-		} else { // si c'est l'opponent de clui dont c'est le tour, on retire
-			     // le privilège à celui qui est en train de jouer
+		} else { // if it is the opponent of the one whose turn it is, remove
+			     // the privilege from the one who is currently playing
 			Game::getGame().getCurrentPlayer().withdrawPrivilege();
 		}
 	}
 	if (Game::getGame().getPrivilegeNumber() == 0) {
-		throw SplendorException("Plus de privilège!");
+		throw SplendorException("No more privileges!");
 	}
 	privileges.push_back(Game::getGame().getPrivilege());
 	privilege_number++;
@@ -223,7 +221,7 @@ void StrategyPlayer::obtainPrivilege() {
 void StrategyPlayer::withdrawPrivilege() {
 	if (privilege_number == 0) {
 		throw SplendorException(
-		    "Vous ne pouvez pas retirer de privilège au player");
+		    "You cannot remove a privilege from the player");
 	}
 	Game::getGame().setPrivilege(*privileges[0]);
 	privileges.erase(privileges.begin());
@@ -236,15 +234,15 @@ void StrategyPlayer::fillingBoard() {
 	Board::getBoard().printArray();
 }
 
-// méthode utilitaire pour le main
+// utility method for main
 bool StrategyPlayer::victoryConditions() {
 	if (crown_number >= 10)
 		return true;
 	if (points_number >= 20)
 		return true;
 
-	// test sur les couleurs, si le player possède 10 points pour des cards
-	// dont le bonus est de même couleurs, alors le player gagne
+	// test on colors, if the player has 10 points for cards whose bonus is
+	// the same color, then the player wins
 	int white_points = 0;
 	int blue_points = 0;
 	int red_points = 0;
@@ -270,44 +268,44 @@ bool StrategyPlayer::victoryConditions() {
 		return true;
 	}
 
-	// on renvoie false si rien n'est bon!
+	// return false if nothing is met!
 
 	return false;
 }
 
 void StrategyPlayer::printPlayer() {
 	cout << "Player : " << name << endl;
-	cout << "Nombre de privilèges : " << privilege_number << endl;
-	cout << "Nombre de points : " << points_number << endl;
-	cout << "Nombre de couronnes : " << crown_number << endl;
-	cout << "Cartes joailleries possédées : " << endl;
+	cout << "Number of privileges: " << privilege_number << endl;
+	cout << "Number of points: " << points_number << endl;
+	cout << "Number of crowns: " << crown_number << endl;
+	cout << "Owned jewelry cards: " << endl;
 	for (auto card : bought_jewelry_cards) {
 		cout << *card << endl;
 	}
 	cout << "---------------------------------------" << endl;
-	cout << "Cartes joailleries reservées : " << endl;
+	cout << "Reserved jewelry cards: " << endl;
 	for (auto card : reserved_jewelry_cards) {
 		cout << *card << endl;
 	}
 	cout << "---------------------------------------" << endl;
-	cout << "Cartes royales :" << endl;
+	cout << "Royal cards:" << endl;
 	for (auto card : royal_cards) {
 		cout << *card << endl;
 	}
 	cout << "---------------------------------------" << endl;
-	cout << "Jetons possédés : " << endl;
-	for (auto jet : tokens) {
-		cout << *jet << endl;
+	cout << "Owned tokens: " << endl;
+	for (auto tok : tokens) {
+		cout << *tok << endl;
 	}
 }
 
 int StrategyPlayer::getOptionalChoices() {
 	/***Convention***
-	Cette méthode renvoie:
-	 - 0 si le player ou l'ia ne peut rien faire
-	 - 1 si le player ou l'ia ne peut qu'utiliser un privilège,
-	 - 2 si le player ou l'ia ne peut que remplir le board,
-	 - 3 si le player ou l'ia peut faire les deux.
+	This method returns:
+	 - 0 if the player or the AI cannot do anything
+	 - 1 if the player or the AI can only use a privilege,
+	 - 2 if the player or the AI can only fill the board,
+	 - 3 if the player or the AI can do both.
 	****************/
 	int nb_choices = 0;
 	if (Game::getGame().getCurrentPlayer().getPrivilegeNumber() > 0) {
@@ -321,50 +319,50 @@ int StrategyPlayer::getOptionalChoices() {
 }
 
 void StrategyPlayer::withdrawWhiteToken() {
-	int compteur = 0;
+	int counter = 0;
 	for (size_t i = 0; i < tokens.size(); ++i) {
 		if (tokens[i]->getColor() == Color::white) {
-			tokens.erase(tokens.begin() + compteur);
+			tokens.erase(tokens.begin() + counter);
 			break;
 		}
-		compteur++;
+		counter++;
 	}
 	token_number--;
 }
 
 void StrategyPlayer::withdrawPerlToken() {
-	int compteur = 0;
+	int counter = 0;
 	for (size_t i = 0; i < tokens.size(); ++i) {
 		if (tokens[i]->getColor() == Color::perl) {
-			tokens.erase(tokens.begin() + compteur);
+			tokens.erase(tokens.begin() + counter);
 			break;
 		}
-		compteur++;
+		counter++;
 	}
 	token_number--;
 }
 
 /******************** Player ********************/
 
-// constructeur et destructeur
+// constructor and destructor
 Player::Player(const string &name) : StrategyPlayer(name) {}
 Player::Player(const json data) : StrategyPlayer(data) {}
 
 Player::~Player() {
-	// Déstruction cards royales
+	// Destroy royal cards
 	for (auto royal_cards : royal_cards) {
 		delete royal_cards;
 	}
 	royal_cards.clear();
 
-	// Déstruction privilèges
+	// Destroy privileges
 	for (auto privilege : privileges) {
 		delete privilege;
 	}
 	privileges.clear();
 }
 
-// Méthodes polymorphiques
+// Polymorphic methods
 void Player::choice() {
 	int tmp = 0;
 	bool end_choice = 0;
@@ -372,39 +370,38 @@ void Player::choice() {
 	while (!end_choice) {
 		try {
 			nb_choice =
-			    getOptionalChoices(); // bien vérifier la convention sur le
-			                          // retour dans la définition de la méthode
+			    getOptionalChoices(); // check the convention on the
+			                          // return in the method definition
 			int i = 1;
-			cout << "Actions optionnelles disponibles:" << endl;
+			cout << "Available optional actions:" << endl;
 			if (nb_choice % 2 == 1) {
-				cout << "Utiliser un privilège-> " << i++ << endl;
+				cout << "Use a privilege -> " << i++ << endl;
 			}
 			if (nb_choice >= 2) {
-				cout << "Remplir le board -> " << i++ << endl;
+				cout << "Fill the board -> " << i++ << endl;
 			}
-			cout << "Actions obligatoire:" << endl;
-			cout << "Pour prendre des tokens appuyez sur -> " << i++ << endl;
-			cout << "Pour acheter une card appuyez sur -> " << i++ << endl;
+			cout << "Mandatory actions:" << endl;
+			cout << "To take tokens press -> " << i++ << endl;
+			cout << "To buy a card press -> " << i++ << endl;
 			cout << "choices :";
 			cin >> tmp;
 
 			if (tmp < 1 or tmp > i + 1) {
 				throw SplendorException(
-				    "Il n'y a que" + to_string(i) +
-				    " choices! Vous ne pouvez pas choisir autre chose!\n");
+				    "There are only " + to_string(i) +
+				    " choices! You cannot choose anything else!\n");
 			}
 			string info;
-			cout << "Validez-vous votre choices? [Y/N]" << endl;
+			cout << "Do you validate your choice? [Y/N]" << endl;
 			cin >> info;
 			if (info == "N") {
-				cout << "Vous n'avez pas validé , vous devez recommencer voter "
-				        "choices!";
+				cout << "You did not validate, you must restart your choice!";
 				throw SplendorException("");
 			}
 
-			switch (nb_choice) { // l'affichage et donc le choices dépend de la
-				                 // valeur de retour des choices optionnels
-			case (0): {          // aucun choices optionnel possible
+			switch (nb_choice) { // the display and therefore the choice depends on the
+				                 // return value of the optional choices
+			case (0): {          // no optional choice possible
 				switch (tmp) {
 				case 1: {
 					tokenSelection();
@@ -417,13 +414,13 @@ void Player::choice() {
 
 					break;
 				}
-				default: // on continue jusqu'à ce que l'utilisateur choisisse
-				         // une entrée valide!
+				default: // continue until the user chooses
+				         // a valid entry!
 					break;
 				}
 				break;
 			}
-			case (1): { // seulement possible d'utiliser un privilège
+			case (1): { // only possible to use a privilege
 				switch (tmp) {
 				case 1: {
 					usePrivilege();
@@ -440,12 +437,12 @@ void Player::choice() {
 					break;
 				}
 					//                        case 4: {
-					//                            // affichage des tokens du
-					//                            jouer !
+					//                            // display of the player's tokens
+					//                            player!
 					//                            //cout<<"Inventaire du player
 					//                            :
 					//                            "<<Game::getGame().getCurrentPlayer().getName()<<endl;
-					//                            // afficher pour chaque type
+					//                            // display for each type
 					//                            break;
 					//                        }
 				default:
@@ -453,9 +450,9 @@ void Player::choice() {
 				}
 				break;
 			}
-			case (2): { // seulement possible de remplir le board
+			case (2): { // only possible to fill the board
 				switch (tmp) {
-				case 1: { // remplissage board
+				case 1: { // fill board
 					fillingBoard();
 					break;
 				}
@@ -470,12 +467,12 @@ void Player::choice() {
 					break;
 				}
 					//                        case 4: {
-					//                            // affichage des tokens du
-					//                            jouer !
+					//                            // display of the player's tokens
+					//                            player!
 					//                            //cout<<"Inventaire du player
 					//                            :
 					//                            "<<Game::getGame().getCurrentPlayer().getName()<<endl;
-					//                            // afficher pour chaque type
+					//                            // display for each type
 					//                            break;
 					//                        }
 				default:
@@ -483,13 +480,13 @@ void Player::choice() {
 				}
 				break;
 			}
-			case (3): { // deux choices optionnels possibles
+			case (3): { // two optional choices possible
 				switch (tmp) {
 				case 1: {
 					usePrivilege();
 					break;
 				}
-				case 2: { // remplissage board
+				case 2: { // fill board
 					fillingBoard();
 					break;
 				}
@@ -504,12 +501,12 @@ void Player::choice() {
 					break;
 				}
 					//                        case 5: {
-					//                            // affichage des tokens du
-					//                            jouer !
+					//                            // display of the player's tokens
+					//                            player!
 					//                            //cout<<"Inventaire du player
 					//                            :
 					//                            "<<Game::getGame().getCurrentPlayer().getName()<<endl;
-					//                            // afficher pour chaque type
+					//                            // display for each type
 					//                            break;
 					//                        }
 				default:
@@ -527,7 +524,7 @@ void Player::choice() {
 	}
 }
 
-// Surcharge Qt
+// Qt overload
 void Player::choice_Qt() {
 
 	int tmp = 0;
@@ -538,19 +535,18 @@ void Player::choice_Qt() {
 		try {
 			MainWindow::getMainWindow().deactivateButtons();
 			nb_choice =
-			    getOptionalChoices(); // bien vérifier la convention sur le
-			                          // retour dans la définition de la méthode
+			    getOptionalChoices(); // check the convention on the
+			                          // return in the method definition
 			MainWindow::getMainWindow().triggerNextAction(&tmp, this);
 
 			if (info == 'N') {
-				cout << "Vous n'avez pas validé , vous devez recommencer voter "
-				        "choices!";
+				cout << "You did not validate, you must restart your choice!";
 				throw SplendorException("");
 			}
 
-			switch (nb_choice) { // l'affichage et donc le choices dépend de la
-				                 // valeur de retour des choices optionnels
-			case (0): {          // aucun choices optionnel possible
+			switch (nb_choice) { // the display and therefore the choice depends on the
+				                 // return value of the optional choices
+			case (0): {          // no optional choice possible
 				switch (tmp) {
 				case 1: {
 					tokenSelection_Qt();
@@ -565,14 +561,14 @@ void Player::choice_Qt() {
 
 					break;
 				}
-				default: { // on continue jusqu'à ce que l'utilisateur choisisse
-					       // une entrée valide!
+				default: { // continue until the user chooses
+					       // a valid entry!
 					break;
 				} break;
 				}
 				break;
 			}
-			case (1): { // seulement possible d'utiliser un privilège
+			case (1): { // only possible to use a privilege
 				switch (tmp) {
 				case 1: {
 					usePrivilege_Qt();
@@ -597,9 +593,9 @@ void Player::choice_Qt() {
 				}
 				break;
 			}
-			case (2): { // seulement possible de remplir le board
+			case (2): { // only possible to fill the board
 				switch (tmp) {
-				case 1: { // remplissage board
+				case 1: { // fill board
 					fillingBoard();
 
 					break;
@@ -622,14 +618,14 @@ void Player::choice_Qt() {
 				}
 				break;
 			}
-			case (3): { // deux choices optionnels possibles
+			case (3): { // two optional choices possible
 				switch (tmp) {
 				case 1: {
 					usePrivilege_Qt();
 
 					break;
 				}
-				case 2: { // remplissage board
+				case 2: { // fill board
 					fillingBoard();
 
 					break;
@@ -671,9 +667,9 @@ void Player::choice_Qt() {
 
 void Player::usePrivilege() {
 	if (privilege_number <= 0)
-		throw SplendorException("Vous n'avez pas de privilège!");
+		throw SplendorException("You do not have a privilege!");
 	unsigned int index;
-	cout << "Quel jeton voulez-vous piocher ? " << endl;
+	cout << "Which token do you want to draw? " << endl;
 	cout << "index : ";
 	cin >> index;
 	Game::getGame().getPlayerRound().drawToken(index);
@@ -682,18 +678,18 @@ void Player::usePrivilege() {
 
 void Player::usePrivilege_Qt() {
 	if (privilege_number <= 0)
-		throw SplendorException("Vous n'avez pas de privilège!");
+		throw SplendorException("You do not have a privilege!");
 	int index = -1;
 
-	MainWindow::getMainWindow().triggerInfo("Veuillez piocher un jeton");
-	// Activer les tokens
+	MainWindow::getMainWindow().triggerInfo("Please draw a token");
+	// Activate the tokens
 	MainWindow::getMainWindow().activateTokens();
 
 	while (index == -1 or
 	       (index != -1 and
 	        Board::getBoard().getBoardCaseByIndex(index)->getColor() ==
 	            Color::gold)) {
-		MainWindow::getMainWindow().getJetonWaitLoop()->exec();
+		MainWindow::getMainWindow().getTokenWaitLoop()->exec();
 		index = MainWindow::getMainWindow().getTokenIndexOnClick();
 	}
 
@@ -703,13 +699,13 @@ void Player::usePrivilege_Qt() {
 
 void Player::tokenSelection() {
 	bool nb_ok = 0;
-	bool choix_ok = 0;
+	bool choice_ok = 0;
 	if (Board::getBoard().onlyGold() and
 	    Game::getGame().getPlayerRound().getReservedCardNumber() >= 3)
 		throw SplendorException(
-		    "Pas possible de piocher: il ne reste que des tokens or et vous ne "
-		    "pouvez plus réserver de card!");
-	while (!choix_ok) {
+		    "Cannot draw: only gold tokens remain and you cannot "
+		    "reserve any more cards!");
+	while (!choice_ok) {
 		try {
 			std::vector<int> tmp_tab(0);
 			optional<Position> pos = nullopt;
@@ -719,11 +715,11 @@ void Player::tokenSelection() {
 			while (validation != "Y") {
 				while (tmp_tab.size() < 3) {
 					unsigned int index = 0;
-					cout << "Veuillez renseigner l'index du jeton "
-					     << tmp_tab.size() << " que vous voulez prendre ";
+					cout << "Please enter the index of token "
+					     << tmp_tab.size() << " that you want to take ";
 					if (tmp_tab.size() >
-					    0) { // ajout de la possibilité de s'arrêter
-						cout << "-1 pour arrêter la sélection de tokens";
+					    0) { // added possibility to stop
+						cout << "-1 to stop token selection";
 					}
 					cout << " :" << endl;
 					cout << "choices :";
@@ -732,27 +728,27 @@ void Player::tokenSelection() {
 						break;
 					}
 					if (Board::getBoard().getBoardCaseByIndex(index) ==
-					    nullptr) { // le nombre de cases sur le board
-						           // correspond au nombre de tokens dans le
+					    nullptr) { // the number of cells on the board
+						           // corresponds to the number of tokens in the
 						           // game
 						gold_number = 0;
 						perl_number = 0;
 						tmp_tab.clear();
 						throw SplendorException(
-						    "Il n'y a pas de jeton à cet index!\n");
+						    "There is no token at this index!\n");
 					}
-					if (index > Token::getMaxTokenNumber()) { // le nombre de
-						                                      // cases sur le
-						// board correspond au
-						// nombre de tokens dans le
+					if (index > Token::getMaxTokenNumber()) { // the number of
+						                                      // cells on the
+						// board corresponds to
+						// the number of tokens in the
 						// game
 						gold_number = 0;
 						perl_number = 0;
 						tmp_tab.clear();
 						throw SplendorException(
-						    "Il n'y a que " +
+						    "There are only " +
 						    std::to_string(Token::getMaxTokenNumber()) +
-						    " places sur le board\n");
+						    " places on the board\n");
 					}
 					if (Board::getBoard()
 					        .getBoardCaseByIndex(index)
@@ -772,28 +768,28 @@ void Player::tokenSelection() {
 						perl_number = 0;
 						tmp_tab.clear();
 						throw SplendorException(
-						    "Vous n'avez pas le droit de réserver une "
-						    "card supplémentaire!");
+						    "You are not allowed to reserve an "
+						    "additional card!");
 					}
 					if (gold_number == 1 and tmp_tab.size() > 0) {
 						gold_number = 0;
 						perl_number = 0;
 						tmp_tab.clear();
 						throw SplendorException(
-						    "Attention, on ne peut prendre un jeton or "
-						    "seulement tout seul!");
+						    "Warning, you can only take a gold token "
+						    "by itself!");
 					}
 					tmp_tab.push_back(index);
 				}
-				cout << "Validez-vous votre sélection? [Y/N] ";
+				cout << "Do you validate your selection? [Y/N] ";
 				cin >> validation;
-				if (validation != "Y") { // on recommence le choices des tokens
+				if (validation != "Y") { // restart token selection
 					tmp_tab.clear();
 					gold_number = 0;
 					perl_number = 0;
-					cout << "\n Vous allez recommencer le choices des tokens: "
+					cout << "\n You will restart token selection: "
 					     << endl;
-					cout << "Tableau" << endl;
+					cout << "Board" << endl;
 					//                    for(int test = 0;
 					//                    test<tmp_tab.size();test++){
 					//                        cout<<tmp_tab[test]<<" - ";
@@ -801,7 +797,7 @@ void Player::tokenSelection() {
 				}
 			}
 
-			// tri du vecteur par selection
+			// sort the vector by selection
 			int min = 0;
 			for (int j = 0; j < tmp_tab.size() - 1; j++) {
 				min = j;
@@ -816,48 +812,48 @@ void Player::tokenSelection() {
 					tmp_tab[j] = tmp2;
 				}
 			}
-			// vecteur trié
-			// cout<<"vecteur trié\n";
+			// sorted vector
+			// cout<<"sorted vector\n";
 
 			if (tmp_tab.size() ==
-			    2) { // vérification de l'alignement pour 2 tokens
-				// cout<<"vérification pour 2 tokens\n";
-				const Token *jet1 =
+			    2) { // alignment check for 2 tokens
+				// cout<<"check for 2 tokens\n";
+				const Token *tok1 =
 				    Board::getBoard().getBoardCaseByIndex(tmp_tab[0]);
 				optional<Position> pos1 =
-				    Board::getBoard().tokensAreASide(tmp_tab[1], jet1);
+				    Board::getBoard().tokensAreASide(tmp_tab[1], tok1);
 				if (pos1 == nullopt) {
-					throw SplendorException("Jetons non-alignés\n");
+					throw SplendorException("Tokens not aligned\n");
 				}
 			}
 			if (tmp_tab.size() ==
-			    3) { // vérification de l'alignement pour 3 tokens
-				// cout<<"vérification pour 3 tokens\n";
-				const Token *jet1 =
+			    3) { // alignment check for 3 tokens
+				// cout<<"check for 3 tokens\n";
+				const Token *tok1 =
 				    Board::getBoard().getBoardCaseByIndex(tmp_tab[1]);
 				optional<Position> pos1 =
-				    Board::getBoard().tokensAreASide(tmp_tab[0], jet1);
+				    Board::getBoard().tokensAreASide(tmp_tab[0], tok1);
 
-				const Token *jet2 =
+				const Token *tok2 =
 				    Board::getBoard().getBoardCaseByIndex(tmp_tab[2]);
 				optional<Position> pos2 =
-				    Board::getBoard().tokensAreASide(tmp_tab[1], jet2);
+				    Board::getBoard().tokensAreASide(tmp_tab[1], tok2);
 
 				if ((pos1 != pos2) || (pos1 == nullopt) || (pos2 == nullopt)) {
-					throw SplendorException("Jetons non-alignés\n");
+					throw SplendorException("Tokens not aligned\n");
 				}
 			}
 
-			// on a vérifié l'alignement des tokens
+			// we have verified the token alignment
 			if (perl_number ==
-			    2) { // obtention d'un privilège par l'opponent si
-				     // on deck les 2 tokens perles en une fois
+			    2) { // opponent gets a privilege if
+				     // we draw 2 perl tokens at once
 				Game::getGame().getOpponent().obtainPrivilege();
 			}
 
 			if (tmp_tab.size() ==
-			    3) { // obtention d'un privilège par l'opponent si
-				     // les 3 tokens sont de la même color
+			    3) { // opponent gets a privilege if
+				     // all 3 tokens are the same color
 				if ((Board::getBoard()
 				         .getBoardCaseByIndex(tmp_tab[0])
 				         ->getColor() == Board::getBoard()
@@ -872,13 +868,13 @@ void Player::tokenSelection() {
 				}
 			}
 			for (int i = 0; i < tmp_tab.size();
-			     i++) { // acquisition des tokens par le player
+			     i++) { // token acquisition by the player
 				Game::getGame().getCurrentPlayer().drawToken(tmp_tab[i]);
 			}
 			if (gold_number == 1) {
 				cardReservation();
 			}
-			choix_ok = 1;
+			choice_ok = 1;
 		} catch (SplendorException &e) {
 			cout << e.getInfo() << "\n";
 		}
@@ -888,16 +884,16 @@ void Player::tokenSelection() {
 void Player::tokenSelection_Qt() {
 	MainWindow::getMainWindow().activateTokens();
 
-	// qDebug() << "SELECTION JETONS QT";
+	// qDebug() << "SELECTION TOKENS QT";
 	bool nb_ok = 0;
-	bool choix_ok = 0;
+	bool choice_ok = 0;
 	if (Board::getBoard().onlyGold() and
 	    Game::getGame().getPlayerRound().getReservedCardNumber() >= 3) {
 		throw SplendorException(
-		    "Pas possible de piocher: il ne reste que des tokens or et vous ne "
-		    "pouvez plus réserver de card!");
+		    "Cannot draw: only gold tokens remain and you cannot "
+		    "reserve any more cards!");
 	}
-	while (!choix_ok) {
+	while (!choice_ok) {
 		try {
 			qDebug() << "Try selection";
 			std::vector<int> tmp_tab(0);
@@ -913,7 +909,7 @@ void Player::tokenSelection_Qt() {
 					qDebug() << "While size()";
 					int index = 0;
 
-					MainWindow::getMainWindow().getJetonWaitLoop()->exec();
+					MainWindow::getMainWindow().getTokenWaitLoop()->exec();
 
 					index = MainWindow::getMainWindow().getTokenIndexOnClick();
 					qDebug() << index;
@@ -921,27 +917,27 @@ void Player::tokenSelection_Qt() {
 						continue;
 
 					if (Board::getBoard().getBoardCaseByIndex(index) ==
-					    nullptr) { // le nombre de cases sur le board
-						           // correspond au nombre de tokens dans le
+					    nullptr) { // the number of cells on the board
+						           // corresponds to the number of tokens in the
 						           // game
 						gold_number = 0;
 						perl_number = 0;
 						tmp_tab.clear();
 						throw SplendorException(
-						    "Il n'y a pas de jeton à cet index!\n");
+						    "There is no token at this index!\n");
 					}
-					if (index > Token::getMaxTokenNumber()) { // le nombre de
-						                                      // cases sur le
-						// board correspond au
-						// nombre de tokens dans le
+					if (index > Token::getMaxTokenNumber()) { // the number of
+						                                      // cells on the
+						// board corresponds to
+						// the number of tokens in the
 						// game
 						gold_number = 0;
 						perl_number = 0;
 						tmp_tab.clear();
 						throw SplendorException(
-						    "Il n'y a que " +
+						    "There are only " +
 						    std::to_string(Token::getMaxTokenNumber()) +
-						    " places sur le board\n");
+						    " places on the board\n");
 					}
 					if (Board::getBoard()
 					        .getBoardCaseByIndex(index)
@@ -961,22 +957,22 @@ void Player::tokenSelection_Qt() {
 						perl_number = 0;
 						tmp_tab.clear();
 						throw SplendorException(
-						    "Vous n'avez pas le droit de réserver une "
-						    "card supplémentaire!");
+						    "You are not allowed to reserve an "
+						    "additional card!");
 					}
 					if (gold_number == 1 and tmp_tab.size() > 0) {
 						gold_number = 0;
 						perl_number = 0;
 						tmp_tab.clear();
 						throw SplendorException(
-						    "Attention, on ne peut prendre un jeton or "
-						    "seulement tout seul!");
+						    "Warning, you can only take a gold token "
+						    "by itself!");
 					}
 					tmp_tab.push_back(index);
 
 					if (tmp_tab.size() < 3) {
 						MainWindow::getMainWindow().triggerYesNo(
-						    &choice_valid, "Sélectionner encore un jeton ");
+						    &choice_valid, "Select another token ");
 
 						if (choice_valid == 'Y')
 							qDebug() << "Yes choice";
@@ -990,21 +986,21 @@ void Player::tokenSelection_Qt() {
 				}
 
 				MainWindow::getMainWindow().triggerYesNo(
-				    &choice_valid, "Validez-vous votre sélection ?");
+				    &choice_valid, "Do you validate your selection?");
 				/*
-				cout<<"Validez-vous votre sélection? [Y/N] ";
+				cout<<"Do you validate your selection? [Y/N] ";
 				cin>>validation;
 				*/
 				if (choice_valid !=
-				    'Y') { // on recommence le choices des tokens
+				    'Y') { // restart token selection
 					tmp_tab.clear();
 					gold_number = 0;
 					perl_number = 0;
 					MainWindow::getMainWindow().triggerInfo(
-					    "Vous allez recommencer le choices des tokens.");
+					    "You will restart token selection.");
 
-					// cout<<"\n Vous allez recommencer le choices des tokens:
-					// "<<endl; cout<<"Tableau"<<endl;
+					// cout<<"\n You will restart the token selection:
+					// "<<endl; cout<<"Array"<<endl;
 					//                    for(int test = 0;
 					//                    test<tmp_tab.size();test++){
 					//                        cout<<tmp_tab[test]<<" - ";
@@ -1012,7 +1008,7 @@ void Player::tokenSelection_Qt() {
 				}
 			}
 
-			// tri du vecteur par selection
+			// sort the vector by selection
 			int min = 0;
 			for (int j = 0; j < tmp_tab.size() - 1; j++) {
 				min = j;
@@ -1028,47 +1024,47 @@ void Player::tokenSelection_Qt() {
 				}
 			}
 
-			// ### GESTION NON ALLIGNEMENT
+			// ### NON-ALIGNMENT HANDLING
 			if (tmp_tab.size() ==
-			    2) { // vérification de l'alignement pour 2 tokens
-				// cout<<"vérification pour 2 tokens\n";
-				const Token *jet1 =
+			    2) { // alignment check for 2 tokens
+				// cout<<"check for 2 tokens\n";
+				const Token *tok1 =
 				    Board::getBoard().getBoardCaseByIndex(tmp_tab[0]);
 				optional<Position> pos1 =
-				    Board::getBoard().tokensAreASide(tmp_tab[1], jet1);
+				    Board::getBoard().tokensAreASide(tmp_tab[1], tok1);
 				if (pos1 == nullopt) {
-					throw SplendorException("Jetons non-alignés\n");
+					throw SplendorException("Tokens not aligned\n");
 				}
 			}
 			if (tmp_tab.size() ==
-			    3) { // vérification de l'alignement pour 3 tokens
-				// cout<<"vérification pour 3 tokens\n";
-				const Token *jet1 =
+			    3) { // alignment check for 3 tokens
+				// cout<<"check for 3 tokens\n";
+				const Token *tok1 =
 				    Board::getBoard().getBoardCaseByIndex(tmp_tab[1]);
 				optional<Position> pos1 =
-				    Board::getBoard().tokensAreASide(tmp_tab[0], jet1);
+				    Board::getBoard().tokensAreASide(tmp_tab[0], tok1);
 
-				const Token *jet2 =
+				const Token *tok2 =
 				    Board::getBoard().getBoardCaseByIndex(tmp_tab[2]);
 				optional<Position> pos2 =
-				    Board::getBoard().tokensAreASide(tmp_tab[1], jet2);
+				    Board::getBoard().tokensAreASide(tmp_tab[1], tok2);
 
 				if ((pos1 != pos2) || (pos1 == nullopt) || (pos2 == nullopt)) {
 					tmp_tab.clear();
-					throw SplendorException("Jetons non-alignés\n");
+					throw SplendorException("Tokens not aligned\n");
 				}
 			}
 
-			// on a vérifié l'alignement des tokens
+			// we have verified the token alignment
 			if (perl_number ==
-			    2) { // obtention d'un privilège par l'opponent si
-				     // on deck les 2 tokens perles en une fois
+			    2) { // opponent gets a privilege if
+				     // we draw 2 perl tokens at once
 				Game::getGame().getOpponent().obtainPrivilege();
 			}
 
 			if (tmp_tab.size() ==
-			    3) { // obtention d'un privilège par l'opponent si
-				     // les 3 tokens sont de la même color
+			    3) { // opponent gets a privilege if
+				     // all 3 tokens are the same color
 				if ((Board::getBoard()
 				         .getBoardCaseByIndex(tmp_tab[0])
 				         ->getColor() == Board::getBoard()
@@ -1083,7 +1079,7 @@ void Player::tokenSelection_Qt() {
 				}
 			}
 			for (int i = 0; i < tmp_tab.size();
-			     i++) { // acquisition des tokens par le player
+			     i++) { // token acquisition by the player
 				Game::getGame().getCurrentPlayer().drawToken(tmp_tab[i]);
 			}
 
@@ -1091,40 +1087,40 @@ void Player::tokenSelection_Qt() {
 				MainWindow::getMainWindow().deactivateButtons();
 				cardReservation_Qt();
 			}
-			choix_ok = 1;
+			choice_ok = 1;
 		} catch (SplendorException &e) {
 			MainWindow::getMainWindow().triggerInfo(e.getInfo() +
-			                                        "Veuillez recommencer: ");
+			                                        "Please try again: ");
 			cout << e.getInfo() << "\n";
 		}
 	}
 }
 
 void Player::cardReservation() {
-	cout << "\n\nTirage1 :" << endl;
+	cout << "\n\nDraw1 :" << endl;
 	cout << *Game::getGame().getFirstDraw() << endl;
-	cout << "\nTirage2 :" << endl;
+	cout << "\nDraw2 :" << endl;
 	cout << *Game::getGame().getSecondDraw() << endl;
-	cout << "\nTirage3 :" << endl;
+	cout << "\nDraw3 :" << endl;
 	cout << *Game::getGame().getThirdDraw() << endl;
-	string tirageOuPioche;
-	cout << "\nSouhaitez-vous réserver une card dans un draw ou la première "
-	        "card d'une deck? [T/P]"
+	string drawOrDeck;
+	cout << "\nDo you want to reserve a card from a draw or the first "
+	        "card of a deck? [T/P]"
 	     << endl;
-	cin >> tirageOuPioche;
-	if (tirageOuPioche != "P") {
-		// Le player choisit de réserver la card sur un draw
+	cin >> drawOrDeck;
+	if (drawOrDeck != "P") {
+		// The player chooses to reserve the card from a draw
 		int choices = 0;
 		while (choices != 1 && choices != 2 && choices != 3) {
-			cout << "Dans quel draw vous voulez réserver une card ?" << endl;
+			cout << "From which draw do you want to reserve a card?" << endl;
 			cout << "choices";
 			cin >> choices;
 		}
 		switch (choices) {
 		case 1: {
 			unsigned int index = 0;
-			cout << "Veuillez renseigner l'index de la card que vous voulez "
-			        "retirer ! "
+			cout << "Please enter the index of the card you want "
+			        "to remove!"
 			     << endl;
 			cout << "choices : ";
 			cin >> index;
@@ -1133,8 +1129,8 @@ void Player::cardReservation() {
 		}
 		case 2: {
 			unsigned int index = 0;
-			cout << "Veuillez renseigner l'index de la card que vous voulez "
-			        "retirer ! "
+			cout << "Please enter the index of the card you want "
+			        "to remove!"
 			     << endl;
 			cout << "choices : ";
 			cin >> index;
@@ -1143,8 +1139,8 @@ void Player::cardReservation() {
 		}
 		case 3: {
 			unsigned int index = 0;
-			cout << "Veuillez renseigner l'index de la card que vous voulez "
-			        "retirer ! "
+			cout << "Please enter the index of the card you want "
+			        "to remove!"
 			     << endl;
 			cout << "choices : ";
 			cin >> index;
@@ -1154,11 +1150,11 @@ void Player::cardReservation() {
 		}
 	} else {
 		int choices = 0;
-		cout << "Sur quelle deck souhaitez-vous réserver la card? " << endl;
+		cout << "On which deck do you want to reserve the card? " << endl;
 		cout << "choices: ";
 		cin >> choices;
 		while (choices != 1 && choices != 2 && choices != 3) {
-			cout << "Sur quelle deck voulez-vous réserver une card ?" << endl;
+			cout << "On which deck do you want to reserve a card?" << endl;
 			cout << "choices";
 			cin >> choices;
 		}
@@ -1168,28 +1164,28 @@ void Player::cardReservation() {
 
 void Player::cardReservation_Qt() {
 	MainWindow::getMainWindow().activateForReserve();
-	string tirageOuPioche;
+	string drawOrDeck;
 
 	MainWindow::getMainWindow().activateForBuy();
-	MainWindow::getMainWindow().getCarteWaitLoop()->exec();
+	MainWindow::getMainWindow().getCardWaitLoop()->exec();
 
-	// Click card et récup la ref de la card et index dans draw ou dans les
-	// cards reservées
-	Qt_carte *last_card_clicked =
+	// Click card and get the ref of the card and index in draw or in the
+	// reserved cards
+	Qt_card *last_card_clicked =
 	    MainWindow::getMainWindow().getLastCardClicked();
 
-	// Carte dans la deck
+	// Card in the deck
 	if (last_card_clicked->getIndex() < 0) {
 		Game::getGame().getCurrentPlayer().reserveCard(
 		    Game::getGame().getDeck(-1 * last_card_clicked->getIndex()));
 	}
 
-	// Carte dans draw
+	// Card in draw
 	else {
 		const JewelryCard *c =
 		    dynamic_cast<const JewelryCard *>(last_card_clicked->getCard());
-		int niveau_tirage = c->getLevel();
-		Draw *draw = Game::getGame().getDrawById(niveau_tirage);
+		int draw_level = c->getLevel();
+		Draw *draw = Game::getGame().getDrawById(draw_level);
 		Game::getGame().getCurrentPlayer().reserveCard(
 		    draw, last_card_clicked->getIndex());
 	}
@@ -1199,73 +1195,73 @@ void Player::applyCapacity(const JewelryCard &card, StrategyPlayer &opponent) {
 	if (card.getCapacity().has_value()) {
 		std::optional<Capacity> capa = card.getCapacity();
 		if (capa == Capacity::steal_opponent_pawn) {
-			cout << "Utilisation de capacité : vous pouvez prendre un jeton "
-			        "gemme ou "
-			        "perl à votre opponent.\n";
+			cout << "Capacity usage: you can take a gem or "
+			        "perl token "
+			        "from your opponent.\n";
 
 			if ((opponent.getToken().empty()) &&
-			    (!opponent.onlyGoldInJetons())) {
-				cout << "Dommage votre opponent ne possède pas de jeton "
-				        "gemme ou "
-				        "perl!"
+			    (!opponent.onlyGoldInTokens())) {
+				cout << "Too bad, your opponent does not have a gem or "
+				        "perl "
+				        "token!"
 				     << endl;
 			} else {
-				vector<const Token *> jetons_adversaire = opponent.getToken();
-				cout << "Voici les tokens de votre opponent: " << endl;
+				vector<const Token *> opponent_tokens = opponent.getToken();
+				cout << "Here are your opponent's tokens: " << endl;
 				int i = 0;
-				for (auto jet : jetons_adversaire) {
-					cout << "Indice : " << i++ << ", " << *jet << endl;
+				for (auto tok : opponent_tokens) {
+					cout << "Index: " << i++ << ", " << *tok << endl;
 				}
 				int choice = -1;
 				do {
 					if (choice != -1) {
-						cout << "Vous ne pouvez pas prendre un jeton or!"
+						cout << "You cannot take a gold token!"
 						     << endl;
 					}
-					cout << "Quel jeton souhaitez vous lui voler?" << endl;
-					cout << "Choix : ";
+					cout << "Which token do you want to steal?" << endl;
+					cout << "Choice: ";
 					cin >> choice;
-				} while (jetons_adversaire[choice]->getColor() == Color::gold);
-				tokens.push_back(jetons_adversaire[choice]);
+				} while (opponent_tokens[choice]->getColor() == Color::gold);
+				tokens.push_back(opponent_tokens[choice]);
 				token_number++;
-				jetons_adversaire.erase(jetons_adversaire.begin() + choice);
-				opponent.setNbJetons(opponent.getTokenNumber() - 1);
+				opponent_tokens.erase(opponent_tokens.begin() + choice);
+				opponent.setNbTokens(opponent.getTokenNumber() - 1);
 			}
 		} else if (capa == Capacity::take_priviledge) {
 			Game::getGame().getCurrentPlayer().obtainPrivilege();
 		} else if (capa == Capacity::take_on_board) {
-			cout << "Utilisation de capacité : vous pouvez prendre un jeton de "
-			        "la "
-			        "color bonus de la card\n";
+			cout << "Capacity usage: you can take a token of the "
+			        "bonus "
+			        "color of the card\n";
 			const optional<enum colorBonus> &color = card.getBonus();
 			if (Board::getBoard().colorsOnBoard(color)) {
-				bool choix_ok = 0;
+				bool choice_ok = 0;
 				unsigned int index = 0;
-				while (!choix_ok) {
+				while (!choice_ok) {
 					try {
-						cout << "Veuillez renseigner l'index du jeton que "
-						        "vous voulez "
-						        "prendre\n ";
+						cout << "Please enter the index of the token you "
+						        "want to "
+						        "take\n ";
 						cout << "choices :" << endl;
 						cin >> index;
 						if (Board::getBoard().getBoardCaseByIndex(index) ==
 						    nullptr) {
 							index = 0;
 							throw SplendorException(
-							    "Il n'y a pas de jeton à cet index!\n");
+							    "There is no token at this index!\n");
 						}
 						if (index < 0 or
-						    index >= Token::getMaxTokenNumber()) { // le nombre
-							                                       // de cases
-							// sur le board
-							// correspond au
-							// nombre de tokens
-							// dans le game
+						    index >= Token::getMaxTokenNumber()) { // the number
+							                                       // of spaces
+							// on the board
+							// matches the
+							// number of tokens
+							// in the game
 							index = 0;
 							throw SplendorException(
-							    "Il n'y a que " +
+							    "There are only " +
 							    std::to_string(Token::getMaxTokenNumber()) +
-							    " places sur le board\n");
+							    " spaces on the board\n");
 						}
 						string s = "Bonus ";
 						if (s + toString(Board::getBoard()
@@ -1274,63 +1270,63 @@ void Player::applyCapacity(const JewelryCard &card, StrategyPlayer &opponent) {
 						    toString(color)) {
 							index = 0;
 							throw SplendorException(
-							    "il faut choisir un jeton de la color du "
-							    "bonus!\n");
+							    "you must choose a token of the bonus "
+							    "color!\n");
 						} else {
 							Game::getGame().getCurrentPlayer().drawToken(index);
-							choix_ok = 1;
+							choice_ok = 1;
 						}
 					} catch (SplendorException &e) {
 						cout << e.getInfo() << "\n";
 					}
 				}
 			}
-		} else { // si la capacité est de replay
+		} else { // if the capacity is to replay
 			Game::getGame().nextRound(1);
 		}
 	}
 	if (card.getBonus() == colorBonus::joker) {
-		cout << "Utilisation de capacité : vous pouvez transformer le joker en "
-		        "un "
-		        "bonus de color en l'associant à"
-		        "une de vos card dotée d'au moins un bonus.\n";
-		int bonus_blanc = calculateBonus(colorBonus::white);
-		int bonus_bleu = calculateBonus(colorBonus::blue);
-		int bonus_rouge = calculateBonus(colorBonus::red);
-		int bonus_vert = calculateBonus(colorBonus::green);
-		int bonus_noir = calculateBonus(colorBonus::black);
+		cout << "Capacity usage: you can transform the joker into "
+		        "a "
+		        "color bonus by associating it with "
+		        "one of your cards that has at least one bonus.\n";
+		int bonus_white = calculateBonus(colorBonus::white);
+		int bonus_blue = calculateBonus(colorBonus::blue);
+		int bonus_red = calculateBonus(colorBonus::red);
+		int bonus_green = calculateBonus(colorBonus::green);
+		int bonus_black = calculateBonus(colorBonus::black);
 
-		bool verif_choix = false;
+		bool choice_verified = false;
 		try {
-			while (!verif_choix) {
-				cout << "Faites votre choices :" << endl;
+			while (!choice_verified) {
+				cout << "Make your choice:" << endl;
 				int option = 0;
-				if (bonus_blanc > 0) {
+				if (bonus_white > 0) {
 					cout << "Bonus white [1]" << endl;
 					option++;
 				}
-				if (bonus_bleu > 0) {
+				if (bonus_blue > 0) {
 					cout << "Bonus blue [2]" << endl;
 					option++;
 				}
-				if (bonus_rouge > 0) {
+				if (bonus_red > 0) {
 					cout << "Bonus red [3]" << endl;
 					option++;
 				}
-				if (bonus_vert > 0) {
+				if (bonus_green > 0) {
 					cout << "Bonus green [4]" << endl;
 					option++;
 				}
-				if (bonus_noir > 0) {
+				if (bonus_black > 0) {
 					cout << "Bonus black [5]" << endl;
 					option++;
 				}
-				// Vérifiez si aucune option n'est disponible
+				// Check if no option is available
 				if (option == 0) {
-					verif_choix = true;
-					throw SplendorException("vous ne possédez aucune card "
-					                        "dotée de bonus.. Capacité"
-					                        " sans effet\n");
+					choice_verified = true;
+					throw SplendorException("you do not own any card "
+					                        "with a bonus.. Capacity"
+					                        " has no effect\n");
 				} else {
 					int choices;
 					cin >> choices;
@@ -1339,31 +1335,31 @@ void Player::applyCapacity(const JewelryCard &card, StrategyPlayer &opponent) {
 					case 1:
 						b = colorBonus::white;
 						card.changeBonusColor(b);
-						verif_choix = true;
+						choice_verified = true;
 						break;
 					case 2:
 						b = colorBonus::blue;
 						card.changeBonusColor(b);
-						verif_choix = true;
+						choice_verified = true;
 						break;
 					case 3:
 						b = colorBonus::red;
 						card.changeBonusColor(b);
-						verif_choix = true;
+						choice_verified = true;
 						break;
 					case 4:
 						b = colorBonus::green;
 						card.changeBonusColor(b);
-						verif_choix = true;
+						choice_verified = true;
 						break;
 					case 5:
 						b = colorBonus::black;
 						card.changeBonusColor(b);
 						;
-						verif_choix = true;
+						choice_verified = true;
 						break;
 					default:
-						cout << "Choix invalide, veuillez recommencer.\n";
+						cout << "Invalid choice, please try again.\n";
 						break;
 					}
 				}
@@ -1374,7 +1370,7 @@ void Player::applyCapacity(const JewelryCard &card, StrategyPlayer &opponent) {
 	}
 }
 
-// Surcharge Qt
+// Qt overload
 void Player::applyCapacity_Qt(const JewelryCard &card,
                               StrategyPlayer &opponent) {
 	MainWindow::getMainWindow().deactivateButtons();
@@ -1383,55 +1379,55 @@ void Player::applyCapacity_Qt(const JewelryCard &card,
 		if (capa == Capacity::steal_opponent_pawn) {
 			if (Game::getGame().getOpponent().getTokenNumber() != 0) {
 				MainWindow::getMainWindow().deactivateButtons();
-				MainWindow::getMainWindow().setStealingJeton(true);
+				MainWindow::getMainWindow().setStealingToken(true);
 
 				MainWindow::getMainWindow().triggerInfo(
-				    "Utilisation de capacité : vous devez prendre un jeton "
-				    "gemme ou "
-				    "perl à votre opponent");
-				MainWindow::getMainWindow().getJetonWaitLoop()->exec();
+				    "Capacity usage: you must take a gem or "
+				    "perl token "
+				    "from your opponent");
+				MainWindow::getMainWindow().getTokenWaitLoop()->exec();
 
 				int index = MainWindow::getMainWindow()
-				                .getTokenIndexOnClick(); // index à récupérer
-				                                         // grace au qt
+				                .getTokenIndexOnClick(); // index to retrieve
+				                                         // via qt
 
 				qDebug() << index;
 
-				// Ajout chez le player et suppression chez l'opponent
-				vector<const Token *> &jetons_adversaire = opponent.getToken();
-				tokens.push_back(jetons_adversaire[index]);
+				// Add to the player and remove from the opponent
+				vector<const Token *> &opponent_tokens = opponent.getToken();
+				tokens.push_back(opponent_tokens[index]);
 				token_number++;
-				jetons_adversaire.erase(jetons_adversaire.begin() + index);
-				opponent.setNbJetons(opponent.getTokenNumber() - 1);
-				MainWindow::getMainWindow().setStealingJeton(false);
+				opponent_tokens.erase(opponent_tokens.begin() + index);
+				opponent.setNbTokens(opponent.getTokenNumber() - 1);
+				MainWindow::getMainWindow().setStealingToken(false);
 			}
 
 		} else if (capa == Capacity::take_priviledge) {
-			// ok pas besoin de changer pour le Qt
+			// ok no need to change for Qt
 			MainWindow::getMainWindow().triggerInfo(
-			    "Vous allez obtenir un privilège");
+			    "You are going to obtain a privilege");
 			Game::getGame().getCurrentPlayer().obtainPrivilege();
 		} else if (capa == Capacity::take_on_board) {
 			const optional<colorBonus> &color = card.getBonus();
 			if (Board::getBoard().colorsOnBoard(color)) {
 				MainWindow::getMainWindow().triggerInfo(
-				    "Utilisation de capacité : vous pouvez prendre un jeton " +
-				    toString(card.getBonus()) + " sur le board");
+				    "Capacity usage: you can take a " +
+				    toString(card.getBonus()) + " token on the board");
 
-				MainWindow::getMainWindow().activateJetonColor(
+				MainWindow::getMainWindow().activateTokenColor(
 				    colorBonusToColor(color));
 
-				MainWindow::getMainWindow().getJetonWaitLoop()->exec();
+				MainWindow::getMainWindow().getTokenWaitLoop()->exec();
 				int index = MainWindow::getMainWindow()
-				                .getTokenIndexOnClick(); // index à récupérer
-				                                         // grace au qt
+				                .getTokenIndexOnClick(); // index to retrieve
+				                                         // via qt
 
 				Game::getGame().getCurrentPlayer().drawToken(index);
 			}
 
-		} else { // La seule capacité possible est de replay
-			// Rien à changer pour le Qt
-			MainWindow::getMainWindow().triggerInfo("Vous allez replay");
+		} else { // The only possible capacity is to replay
+			// Nothing to change for Qt
+			MainWindow::getMainWindow().triggerInfo("You are going to replay");
 			Game::getGame().nextRound(1);
 		}
 	}
@@ -1447,50 +1443,50 @@ void Player::applyRoyalCapacity(const RoyalCard &card,
 	if (card.getCapacity().has_value()) {
 		std::optional<Capacity> capa = card.getCapacity();
 		if (capa == Capacity::steal_opponent_pawn) {
-			cout << "Utilisation de capacité : vous pouvez prendre un jeton "
-			        "gemme ou "
-			        "perl à votre opponent.\n";
+			cout << "Capacity usage: you can take a gem or "
+			        "perl token "
+			        "from your opponent.\n";
 
 			if (opponent.getToken().empty()) {
-				cout << "Dommage votre opponent ne possède pas de jeton "
-				        "gemme ou "
-				        "perl!"
+				cout << "Too bad, your opponent does not have a gem or "
+				        "perl "
+				        "token!"
 				     << endl;
 			} else {
-				vector<const Token *> jetons_adversaire = opponent.getToken();
-				cout << "Voici les tokens de votre opponent: " << endl;
+				vector<const Token *> opponent_tokens = opponent.getToken();
+				cout << "Here are your opponent's tokens: " << endl;
 				int i = 0;
-				for (auto jet : jetons_adversaire) {
-					cout << "Indice : " << i++ << ", " << *jet << endl;
+				for (auto tok : opponent_tokens) {
+					cout << "Index: " << i++ << ", " << *tok << endl;
 				}
 				int choice = -1;
 				do {
 					if (choice != -1) {
-						cout << "Vous ne pouvez pas prendre un jeton or!"
+						cout << "You cannot take a gold token!"
 						     << endl;
 					}
-					cout << "Quel jeton souhaitez vous lui voler?" << endl;
-					cout << "Choix : ";
+					cout << "Which token do you want to steal?" << endl;
+					cout << "Choice: ";
 					cin >> choice;
-				} while (jetons_adversaire[choice]->getColor() == Color::gold);
-				tokens.push_back(jetons_adversaire[choice]);
+				} while (opponent_tokens[choice]->getColor() == Color::gold);
+				tokens.push_back(opponent_tokens[choice]);
 				token_number++;
-				jetons_adversaire.erase(jetons_adversaire.begin() + choice);
-				opponent.setNbJetons(opponent.getTokenNumber() - 1);
+				opponent_tokens.erase(opponent_tokens.begin() + choice);
+				opponent.setNbTokens(opponent.getTokenNumber() - 1);
 			}
 		} else if (capa == Capacity::take_priviledge) {
 			Game::getGame().getCurrentPlayer().obtainPrivilege();
-			cout << "Capacité de la card: Vous avez obtenu un privilège!"
+			cout << "Card capacity: You have obtained a privilege!"
 			     << endl;
 		} else {
 			Game::getGame().nextRound(1);
-			cout << "Capacité de la card: Rejouer! Vous allez recommencer"
+			cout << "Card capacity: Replay! You will restart"
 			     << endl;
 		}
 	}
 }
 
-// Surcharge Qt
+// Qt overload
 void Player::applyRoyalCapacity_Qt(const RoyalCard &card,
                                    StrategyPlayer &opponent) {
 	if (card.getCapacity().has_value()) {
@@ -1498,39 +1494,39 @@ void Player::applyRoyalCapacity_Qt(const RoyalCard &card,
 		if (capa == Capacity::steal_opponent_pawn) {
 			if (Game::getGame().getOpponent().getTokenNumber() != 0) {
 				MainWindow::getMainWindow().deactivateButtons();
-				MainWindow::getMainWindow().setStealingJeton(true);
+				MainWindow::getMainWindow().setStealingToken(true);
 
 				MainWindow::getMainWindow().triggerInfo(
-				    "Utilisation de capacité : vous devez prendre un jeton "
-				    "gemme ou "
-				    "perl à votre opponent");
-				MainWindow::getMainWindow().getJetonWaitLoop()->exec();
+				    "Capacity usage: you must take a gem or "
+				    "perl token "
+				    "from your opponent");
+				MainWindow::getMainWindow().getTokenWaitLoop()->exec();
 
 				int index = MainWindow::getMainWindow()
-				                .getTokenIndexOnClick(); // index à récupérer
-				                                         // grace au qt
+				                .getTokenIndexOnClick(); // index to retrieve
+				                                         // via qt
 
 				qDebug() << index;
 
-				// Ajout chez le player et suppression chez l'opponent
-				vector<const Token *> &jetons_adversaire = opponent.getToken();
-				tokens.push_back(jetons_adversaire[index]);
+				// Add to the player and remove from the opponent
+				vector<const Token *> &opponent_tokens = opponent.getToken();
+				tokens.push_back(opponent_tokens[index]);
 				token_number++;
-				jetons_adversaire.erase(jetons_adversaire.begin() + index);
-				opponent.setNbJetons(opponent.getTokenNumber() - 1);
-				MainWindow::getMainWindow().setStealingJeton(false);
+				opponent_tokens.erase(opponent_tokens.begin() + index);
+				opponent.setNbTokens(opponent.getTokenNumber() - 1);
+				MainWindow::getMainWindow().setStealingToken(false);
 			}
 		} else if (capa == Capacity::take_priviledge) {
-			// Rien à changer dans la Qt
+			// Nothing to change in Qt
 			MainWindow::getMainWindow().triggerInfo(
-			    "Vous obtenez un privilège");
+			    "You obtain a privilege");
 			Game::getGame().getCurrentPlayer().obtainPrivilege();
-			cout << "Capacité de la card: Vous avez obtenu un privilège!"
+			cout << "Card capacity: You have obtained a privilege!"
 			     << endl;
 		} else {
-			MainWindow::getMainWindow().triggerInfo("Vous allez replay");
+			MainWindow::getMainWindow().triggerInfo("You are going to replay");
 			Game::getGame().nextRound(1);
-			cout << "Capacité de la card: Rejouer! Vous allez recommencer"
+			cout << "Card capacity: Replay! You will restart"
 			     << endl;
 		}
 	}
@@ -1541,44 +1537,43 @@ void Player::cardPurchase() {
 	if (Game::getGame().getCurrentPlayer().getReservedCardNumber() != 0) {
 
 		while (choice != 1 && choice != 0) {
-			cout << "Voulez vous acheter une card que vous avez réserver "
-			        "auparavant "
-			        "? 1 pour oui /0 pour non"
+			cout << "Do you want to buy a card you previously reserved? "
+			        "1 for yes "
+			        "/ 0 for no"
 			     << endl;
 			cout << "choices";
 			cin >> choice;
 		}
 		if (choice == 1) {
-			// alors on doit lui print les cards qu'il peut acheter (celles
-			// qu'il a déjà reservé)
+			// then we must show the cards they can buy (those already reserved)
 			vector<const JewelryCard *> &reserved =
 			    Game::getGame().getCurrentPlayer().getReservedCards();
 			for (int i = 0; i < reserved.size(); ++i) {
 				cout << "index : " << i << " " << *reserved[i] << endl;
 			}
 			unsigned int index;
-			cout << "veuillez renseigner l'index de la card choisie : ";
+			cout << "please enter the index of the chosen card: ";
 			cin >> index;
 			Game::getGame().getCurrentPlayer().buyReservedCard(index);
 		} else {
-			cout << "\n\nTirage1 :" << endl;
+			cout << "\n\nDraw1 :" << endl;
 			cout << *Game::getGame().getFirstDraw() << endl;
-			cout << "\nTirage2 :" << endl;
+			cout << "\nDraw2 :" << endl;
 			cout << *Game::getGame().getSecondDraw() << endl;
-			cout << "\nTirage3 :" << endl;
+			cout << "\nDraw3 :" << endl;
 			cout << *Game::getGame().getThirdDraw() << endl;
 			int choices = 0;
 			while (choices != 1 && choices != 2 && choices != 3) {
-				cout << "Dans quel draw vous voulez acheter une card ?" << endl;
+				cout << "From which draw do you want to buy a card?" << endl;
 				cout << "choices";
 				cin >> choices;
 			}
 			switch (choices) {
 			case 1: {
 				unsigned int index = 0;
-				cout << "Veuillez renseigner l'index de la card que vous "
-				        "voulez "
-				        "acheter ! "
+				cout << "Please enter the index of the card you "
+				        "want "
+				        "to buy: "
 				     << endl;
 				cout << "choices : ";
 				cin >> index;
@@ -1588,9 +1583,9 @@ void Player::cardPurchase() {
 			}
 			case 2: {
 				unsigned int index = 0;
-				cout << "Veuillez renseigner l'index de la card que vous "
-				        "voulez "
-				        "acheter ! "
+				cout << "Please enter the index of the card you "
+				        "want "
+				        "to buy: "
 				     << endl;
 				cout << "choices : ";
 				cin >> index;
@@ -1600,9 +1595,9 @@ void Player::cardPurchase() {
 			}
 			case 3: {
 				unsigned int index = 0;
-				cout << "Veuillez renseigner l'index de la card que vous "
-				        "voulez "
-				        "acheter ! "
+				cout << "Please enter the index of the card you "
+				        "want "
+				        "to buy: "
 				     << endl;
 				cout << "choices : ";
 				cin >> index;
@@ -1613,23 +1608,23 @@ void Player::cardPurchase() {
 			}
 		}
 	} else {
-		cout << "\n\nTirage1 :" << endl;
+		cout << "\n\nDraw1 :" << endl;
 		cout << *Game::getGame().getFirstDraw() << endl;
-		cout << "\nTirage2 :" << endl;
+		cout << "\nDraw2 :" << endl;
 		cout << *Game::getGame().getSecondDraw() << endl;
-		cout << "\nTirage3 :" << endl;
+		cout << "\nDraw3 :" << endl;
 		cout << *Game::getGame().getThirdDraw() << endl;
 		int choices = 0;
 		while (choices != 1 && choices != 2 && choices != 3) {
-			cout << "Dans quel draw vous voulez acheter une card ?" << endl;
+			cout << "From which draw do you want to buy a card?" << endl;
 			cout << "choices";
 			cin >> choices;
 		}
 		switch (choices) {
 		case 1: {
 			unsigned int index = 0;
-			cout << "Veuillez renseigner l'index de la card que vous voulez "
-			        "acheter ! "
+			cout << "Please enter the index of the card you want "
+			        "to buy: "
 			     << endl;
 			cout << "choices : ";
 			cin >> index;
@@ -1639,8 +1634,8 @@ void Player::cardPurchase() {
 		}
 		case 2: {
 			unsigned int index = 0;
-			cout << "Veuillez renseigner l'index de la card que vous voulez "
-			        "acheter ! "
+			cout << "Please enter the index of the card you want "
+			        "to buy: "
 			     << endl;
 			cout << "choices : ";
 			cin >> index;
@@ -1650,8 +1645,8 @@ void Player::cardPurchase() {
 		}
 		case 3: {
 			unsigned int index = 0;
-			cout << "Veuillez renseigner l'index de la card que vous voulez "
-			        "acheter ! "
+			cout << "Please enter the index of the card you want "
+			        "to buy: "
 			     << endl;
 			cout << "choices : ";
 			cin >> index;
@@ -1663,54 +1658,54 @@ void Player::cardPurchase() {
 	}
 }
 
-// Surcharge Qt
+// Qt overload
 void Player::cardPurchase_Qt() {
 	MainWindow::getMainWindow().setBuyingCard(true);
-	// qDebug() << "Carte qt";
+	// qDebug() << "Card qt";
 	MainWindow::getMainWindow().activateForBuy();
-	MainWindow::getMainWindow().getCarteWaitLoop()->exec();
+	MainWindow::getMainWindow().getCardWaitLoop()->exec();
 
-	Qt_carte *last_card_clicked =
+	Qt_card *last_card_clicked =
 	    MainWindow::getMainWindow().getLastCardClicked();
 	qDebug() << last_card_clicked->getIndex()
 	         << last_card_clicked->getReserved()
 	         << last_card_clicked->getCard()->getVisual();
 
-	// Carte reservées
+	// Reserved cards
 	if (last_card_clicked->getReserved() == true) {
-		qDebug() << "CARTE EFFECTIVEMENT R";
+		qDebug() << "CARD EFFECTIVELY RESERVED";
 		Game::getGame().getCurrentPlayer().buyReservedCard_Qt(
 		    last_card_clicked->getIndex());
 	}
 
-	// Carte dans draw
+	// Card in draw
 	else {
-		qDebug() << "CARTE PAS EFFECTIVEMENT R";
+		qDebug() << "CARD NOT EFFECTIVELY RESERVED";
 		const JewelryCard *c =
 		    dynamic_cast<const JewelryCard *>(last_card_clicked->getCard());
-		int niveau_tirage = c->getLevel();
-		Draw *draw = Game::getGame().getDrawById(niveau_tirage);
+		int draw_level = c->getLevel();
+		Draw *draw = Game::getGame().getDrawById(draw_level);
 		Game::getGame().getCurrentPlayer().buyCard_Qt(
 		    draw, last_card_clicked->getIndex());
 	}
 	MainWindow::getMainWindow().setBuyingCard(false);
-	last_card_clicked->setReservee(false);
+	last_card_clicked->setReserved(false);
 }
 
 void Player::buyCard(Draw *t, const int index) {
 
-	// la card qu'il veut supp c'est la ième du draw t
+	// the card to remove is the i-th from draw t
 
 	const JewelryCard &card = t->getCardWithoutDeletion(index);
 	if (card.getBonus() == colorBonus::joker and
 	    jokerCardEligibility() == false) {
-		throw SplendorException("Vous n'avez pas le droit d'acheter une card "
-		                        "avec un bonus joker car "
-		                        "vous ne pouvez pas assigner le bonus!");
+		throw SplendorException("You are not allowed to buy a card "
+		                        "with a joker bonus because "
+		                        "you cannot assign the bonus!");
 	}
 
-	// ici calculer bonus permet de retirer du cout total des cards le bonus
-	// des cards déjà possédées.
+	// here calculating bonus removes the bonus from the total card cost
+	// of already owned cards.
 	int white_cost =
 	    positiveOrNull(card.getCostWhite() - calculateBonus(colorBonus::white));
 	int blue_cost =
@@ -1723,75 +1718,75 @@ void Player::buyCard(Draw *t, const int index) {
 	    positiveOrNull(card.getCostBlack() - calculateBonus(colorBonus::black));
 	int perl_cost = card.getCostPerl();
 
-	// Vérifier si le player veut utiliser des tokens en or (s'il en possède)
-	// Et diminuer le coût respectivement
+	// Check if the player wants to use gold tokens (if they have any)
+	// And reduce the cost accordingly
 	int nb_gold = 0;
 	if (TokenAmount(Color::gold) > 0) {
-		std::cout << "Voulez-vous utiliser un(des) jeton(s) or? [Y/N]"
+		std::cout << "Do you want to use gold token(s)? [Y/N]"
 		          << std::endl;
 		std::string choices;
 		std::cin >> choices;
 		int nb;
 		if (choices == "Y") {
 			while (TokenAmount(Color::gold) > nb_gold) {
-				// choices de la color
-				std::cout << "Couleur remplacée? Stop pour arrêter d'utiliser "
-				             "des tokens or:"
+				// choose the color
+				std::cout << "Color to replace? Stop to stop using "
+				             "gold tokens:"
 				          << std::endl;
 				std::cin >> choices;
 				if (choices == "stop" || "Stop") {
 					break;
 				}
 				do {
-					// choices du nombre de tokens or utilisé pour la color en
+					// choose the number of gold tokens used for the color in
 					// question
-					std::cout << "Nombre?" << std::endl;
+					std::cout << "How many?" << std::endl;
 					std::cin >> nb;
 				} while (nb > TokenAmount(Color::gold));
 				try {
 					if (nb > TokenAmount(Color::gold) - nb_gold)
 						throw SplendorException(
-						    "Vous n'avez pas asseez de tokens or pour en "
-						    "dépenser autant!");
+						    "You don't have enough gold tokens to "
+						    "spend that many!");
 					if ((choices == "white" || "White") && (nb > white_cost))
 						throw SplendorException(
-						    "Le cout white est inférieur au nombre de tokens "
-						    "or que vous "
-						    "souhaitez utiliser en tant que joker!");
+						    "The white cost is less than the number of gold "
+						    "tokens you "
+						    "want to use as joker!");
 					if ((choices == "blue" || "Blue") && (nb > blue_cost))
 						throw SplendorException(
-						    "Le cout blue est inférieur au nombre de tokens or "
-						    "que vous "
-						    "souhaitez utiliser en tant que joker!");
+						    "The blue cost is less than the number of gold tokens "
+						    "you "
+						    "want to use as joker!");
 					if ((choices == "red" || "Red") && (nb > red_cost))
 						throw SplendorException(
-						    "Le cout red est inférieur au nombre de tokens "
-						    "or que vous "
-						    "souhaitez utiliser en tant que joker!");
+						    "The red cost is less than the number of gold "
+						    "tokens you "
+						    "want to use as joker!");
 					if ((choices == "green" || "Green") && (nb > green_cost))
 						throw SplendorException(
-						    "Le cout green est inférieur au nombre de tokens "
-						    "or "
-						    "que vous "
-						    "souhaitez utiliser en tant que joker!");
+						    "The green cost is less than the number of gold "
+						    "tokens "
+						    "you "
+						    "want to use as joker!");
 					if ((choices == "black" || "Black") && (nb > black_cost))
 						throw SplendorException(
-						    "Le cout black est inférieur au nombre de tokens "
-						    "or "
-						    "que vous "
-						    "souhaitez utiliser en tant que joker!");
-					if ((choices == "perl" || "Perle") && (nb > white_cost))
+						    "The black cost is less than the number of gold "
+						    "tokens "
+						    "you "
+						    "want to use as joker!");
+					if ((choices == "perl" || "Pearl") && (nb > white_cost))
 						throw SplendorException(
-						    "Le cout perl est inférieur au nombre de tokens "
-						    "or que vous "
-						    "souhaitez utiliser en tant que joker!");
+						    "The perl cost is less than the number of gold "
+						    "tokens you "
+						    "want to use as joker!");
 					if (choices != "white" || "White" || "blue" || "Blue" ||
 					    "red" || "Red" || "green" || "Green" || "black" ||
-					    "Black" || "perl" || "Perle")
-						throw SplendorException("Couleur de jeton inconnue!");
+					    "Black" || "perl" || "Pearl")
+						throw SplendorException("Unknown token color!");
 
-					// Si on a passé tous ces tests on peut utiliser les tokens
-					// or
+					// If all checks passed, we can use the gold
+					// tokens
 					nb_gold += nb;
 					if (choices == "white" || "White")
 						white_cost = positiveOrNull(white_cost - nb);
@@ -1803,7 +1798,7 @@ void Player::buyCard(Draw *t, const int index) {
 						green_cost = positiveOrNull(green_cost - nb);
 					if (choices == "black" || "Black")
 						black_cost = positiveOrNull(black_cost - nb);
-					if (choices == "perl" || "Perle")
+					if (choices == "perl" || "Pearl")
 						perl_cost = positiveOrNull(perl_cost - nb);
 				} catch (SplendorException e) {
 					cout << e.getInfo() << endl;
@@ -1811,10 +1806,10 @@ void Player::buyCard(Draw *t, const int index) {
 			}
 		}
 	}
-	// Vérifier si assez de tokens
+	// Check if enough tokens
 	int eligible_purchase = 0;
 
-	// vérifier si on a le nombre de tokens pour acheter
+	// check if we have enough tokens to buy
 	if (TokenAmount(Color::white) >= white_cost &&
 	    TokenAmount(Color::blue) >= blue_cost &&
 	    TokenAmount(Color::red) >= red_cost &&
@@ -1825,9 +1820,9 @@ void Player::buyCard(Draw *t, const int index) {
 	}
 
 	if (eligible_purchase == 0)
-		throw SplendorException("Pas assez de tokens pour acheter la card !");
+		throw SplendorException("Not enough tokens to buy the card!");
 
-	// Retirer les tokens utilisés et les mettre dans le bag
+	// Remove used tokens and put them back in the bag
 	withdrawTokens(Color::white, white_cost);
 	withdrawTokens(Color::blue, blue_cost);
 	withdrawTokens(Color::red, red_cost);
@@ -1836,19 +1831,19 @@ void Player::buyCard(Draw *t, const int index) {
 	withdrawTokens(Color::perl, perl_cost);
 	withdrawTokens(Color::gold, nb_gold);
 
-	// Mettre la card dans la main du player et la supprimer du draw
+	// Put the card in the player's hand and remove it from the draw
 	bought_jewelry_cards.push_back(&(t->getCard(index)));
 	try {
 		t->fill();
 	} catch (SplendorException &e) {
 	}
 
-	// Rajouter le nb de couronnes
+	// Add the crown count
 	crown_number += card.getNbCrown();
 	points_number += card.getPrestige();
 	jewelry_cards_number++;
-	// Dans le main tester si eligible pour card royale et appeler get card
-	// royale
+	// In the main, test if eligible for royal card and call get royal
+	// card
 
 	Game::getGame().getCurrentPlayer().applyCapacity(
 	    card, Game::getGame().getOpponent());
@@ -1856,18 +1851,18 @@ void Player::buyCard(Draw *t, const int index) {
 
 void Player::buyCard_Qt(Draw *t, const int index) {
 
-	// la card qu'il veut supp c'est la ième du draw t
+	// the card to remove is the i-th from draw t
 
 	const JewelryCard &card = t->getCardWithoutDeletion(index);
 	if (card.getBonus() == colorBonus::joker &&
 	    jokerCardEligibility() == false) {
-		throw SplendorException("Vous n'avez pas le droit d'acheter une card "
-		                        "avec un bonus joker car "
-		                        "vous ne pouvez pas assigner le bonus!");
+		throw SplendorException("You are not allowed to buy a card "
+		                        "with a joker bonus because "
+		                        "you cannot assign the bonus!");
 	}
 
-	// ici calculer bonus permet de retirer du cout total des cards le bonus
-	// des cards déjà possédées.
+	// here calculating bonus removes the bonus from the total card cost
+	// of already owned cards.
 	int white_cost =
 	    positiveOrNull(card.getCostWhite() - calculateBonus(colorBonus::white));
 	int blue_cost =
@@ -1880,65 +1875,65 @@ void Player::buyCard_Qt(Draw *t, const int index) {
 	    positiveOrNull(card.getCostBlack() - calculateBonus(colorBonus::black));
 	int perl_cost = card.getCostPerl();
 
-	// Vérifier si le player veut utiliser des tokens en or (s'il en possède)
-	// Et diminuer le coût respectivement
+	// Check if the player wants to use gold tokens (if they have any)
+	// And reduce the cost accordingly
 	int nb_gold = 0;
 	char choices;
 	if (TokenAmount(Color::gold) > 0) {
 
 		MainWindow::getMainWindow().triggerYesNo(
-		    &choices, "Voulez-vous utiliser un(des) jeton(s) or?");
+		    &choices, "Do you want to use gold token(s)?");
 
 		int nb;
 		while ((TokenAmount(Color::gold) > nb_gold) && (choices == 'Y')) {
-			// choices de la color
-			//  recup les 2 val
+			// choose the color
+			//  retrieve the 2 values
 			Color color;
 
 			MainWindow::getMainWindow().triggercolorChoice(&color, &nb);
 
 			try {
 				if (nb > TokenAmount(Color::gold) - nb_gold)
-					throw SplendorException("Vous n'avez pas asseez de tokens "
-					                        "or pour en dépenser autant!");
+					throw SplendorException("You don't have enough gold tokens "
+					                        "to spend that many!");
 				if ((color == Color::white) && (nb > white_cost))
 					throw SplendorException(
-					    "Le cout white est inférieur au nombre de tokens or "
-					    "que vous "
-					    "souhaitez utiliser en tant que joker!");
+					    "The white cost is less than the number of gold tokens "
+					    "you "
+					    "want to use as joker!");
 				if ((color == Color::blue) && (nb > blue_cost))
 					throw SplendorException(
-					    "Le cout blue est inférieur au nombre de tokens or que "
-					    "vous "
-					    "souhaitez utiliser en tant que joker!");
+					    "The blue cost is less than the number of gold tokens "
+					    "you "
+					    "want to use as joker!");
 				if ((color == Color::red) && (nb > red_cost))
 					throw SplendorException(
-					    "Le cout red est inférieur au nombre de tokens or "
-					    "que vous "
-					    "souhaitez utiliser en tant que joker!");
+					    "The red cost is less than the number of gold tokens "
+					    "you "
+					    "want to use as joker!");
 				if ((color == Color::green) && (nb > green_cost))
 					throw SplendorException(
-					    "Le cout green est inférieur au nombre de tokens or "
-					    "que "
-					    "vous "
-					    "souhaitez utiliser en tant que joker!");
+					    "The green cost is less than the number of gold tokens "
+					    "you "
+					    " "
+					    "want to use as joker!");
 				if ((color == Color::black) && (nb > black_cost))
 					throw SplendorException(
-					    "Le cout black est inférieur au nombre de tokens or "
-					    "que "
-					    "vous "
-					    "souhaitez utiliser en tant que joker!");
+					    "The black cost is less than the number of gold tokens "
+					    "you "
+					    " "
+					    "want to use as joker!");
 				if ((color == Color::perl) && (nb > white_cost))
 					throw SplendorException(
-					    "Le cout perl est inférieur au nombre de tokens or "
-					    "que vous "
-					    "souhaitez utiliser en tant que joker!");
+					    "The perl cost is less than the number of gold tokens "
+					    "you "
+					    "want to use as joker!");
 				if ((color != Color::white) && (color != Color::blue) &&
 				    (color != Color::red) && (color != Color::green) &&
 				    (color != Color::black) && (color != Color::perl))
-					throw SplendorException("Couleur de jeton!");
+					throw SplendorException("Unknown token color!");
 
-				// Si on a passé tous ces tests, on peut utiliser les tokens or
+				// If all checks passed, we can use the gold tokens
 				nb_gold += nb;
 				if (color == Color::white)
 					white_cost = positiveOrNull(white_cost - nb);
@@ -1958,13 +1953,13 @@ void Player::buyCard_Qt(Draw *t, const int index) {
 			}
 			if (TokenAmount(Color::gold) > nb_gold)
 				MainWindow::getMainWindow().triggerYesNo(
-				    &choices, "Utiliser encore un jeton or ?");
+				    &choices, "Use another gold token?");
 		}
 	}
-	// Vérifier si assez de tokens
+	// Check if enough tokens
 	int eligible_purchase = 0;
 
-	// vérifier si on a le nombre de tokens pour acheter
+	// check if we have enough tokens to buy
 	if (TokenAmount(Color::white) >= white_cost &&
 	    TokenAmount(Color::blue) >= blue_cost &&
 	    TokenAmount(Color::red) >= red_cost &&
@@ -1975,9 +1970,9 @@ void Player::buyCard_Qt(Draw *t, const int index) {
 	}
 
 	if (eligible_purchase == 0)
-		throw SplendorException("Pas assez de tokens pour acheter la card !");
+		throw SplendorException("Not enough tokens to buy the card!");
 
-	// Retirer les tokens utilisés et les mettre dans le bag
+	// Remove used tokens and put them back in the bag
 	withdrawTokens(Color::white, white_cost);
 	withdrawTokens(Color::blue, blue_cost);
 	withdrawTokens(Color::red, red_cost);
@@ -1986,19 +1981,19 @@ void Player::buyCard_Qt(Draw *t, const int index) {
 	withdrawTokens(Color::perl, perl_cost);
 	withdrawTokens(Color::gold, nb_gold);
 
-	// Mettre la card dans la main du player et la supprimer du draw
+	// Put the card in the player's hand and remove it from the draw
 	bought_jewelry_cards.push_back(&(t->getCard(index)));
 	try {
 		t->fill();
 	} catch (SplendorException &e) {
 	}
 
-	// Rajouter le nb de couronnes
+	// Add the crown count
 	crown_number += card.getNbCrown();
 	points_number += card.getPrestige();
 	jewelry_cards_number++;
-	// Dans le main tester si eligible pour card royale et appeler get card
-	// royale
+	// In the main, test if eligible for royal card and call get royal
+	// card
 
 	Game::getGame().getCurrentPlayer().applyCapacity_Qt(
 	    card, Game::getGame().getOpponent());
@@ -2007,18 +2002,18 @@ void Player::buyCard_Qt(Draw *t, const int index) {
 
 void Player::buyReservedCard(const int index) {
 	if (reserved_jewelry_cards.size() == 0 || index > 3) {
-		throw SplendorException("Pas de cards réservées");
+		throw SplendorException("No reserved cards");
 	}
 
-	// on doit vérifier que l'achat peut se faire
+	// we must verify that the purchase can be made
 
 	const JewelryCard *card = reserved_jewelry_cards[index];
 
 	if (card->getBonus() == colorBonus::joker and
 	    jokerCardEligibility() == false) {
-		throw SplendorException("Vous n'avez pas le droit d'acheter une card "
-		                        "avec un bonus joker car "
-		                        "vous ne pouvez pas assigner le bonus!");
+		throw SplendorException("You are not allowed to buy a card "
+		                        "with a joker bonus because "
+		                        "you cannot assign the bonus!");
 	}
 
 	int white_cost = positiveOrNull(card->getCostWhite() -
@@ -2035,71 +2030,71 @@ void Player::buyReservedCard(const int index) {
 
 	int nb_gold = 0;
 	if (TokenAmount(Color::gold) > 0) {
-		std::cout << "Voulez-vous utiliser un(des) jeton(s) or? [Y/N]"
+		std::cout << "Do you want to use gold token(s)? [Y/N]"
 		          << std::endl;
 		std::string choices;
 		std::cin >> choices;
 		int nb;
 		if (choices == "Y") {
 			while (TokenAmount(Color::gold) > nb_gold) {
-				// choices de la color
-				std::cout << "Couleur remplacée? Stop pour arrêter d'utiliser "
-				             "des tokens or:"
+				// choose the color
+				std::cout << "Color to replace? Stop to stop using "
+				             "gold tokens:"
 				          << std::endl;
 				std::cin >> choices;
 				if (choices == "stop" || "Stop") {
 					break;
 				}
 				do {
-					// choices du nombre de tokens or utilisé pour la color en
+					// choose the number of gold tokens used for the color in
 					// question
-					std::cout << "Nombre?" << std::endl;
+					std::cout << "How many?" << std::endl;
 					std::cin >> nb;
 				} while (nb > TokenAmount(Color::gold));
 				try {
 					if (nb > TokenAmount(Color::gold) - nb_gold)
 						throw SplendorException(
-						    "Vous n'avez pas asseez de tokens or pour en "
-						    "dépenser autant!");
+						    "You don't have enough gold tokens to "
+						    "spend that many!");
 					if ((choices == "white" || "White") && (nb > white_cost))
 						throw SplendorException(
-						    "Le cout white est inférieur au nombre de tokens "
-						    "or que vous "
-						    "souhaitez utiliser en tant que joker!");
+						    "The white cost is less than the number of gold "
+						    "tokens you "
+						    "want to use as joker!");
 					if ((choices == "blue" || "Blue") && (nb > blue_cost))
 						throw SplendorException(
-						    "Le cout blue est inférieur au nombre de tokens or "
-						    "que vous "
-						    "souhaitez utiliser en tant que joker!");
+						    "The blue cost is less than the number of gold tokens "
+						    "you "
+						    "want to use as joker!");
 					if ((choices == "red" || "Red") && (nb > red_cost))
 						throw SplendorException(
-						    "Le cout red est inférieur au nombre de tokens "
-						    "or que vous "
-						    "souhaitez utiliser en tant que joker!");
+						    "The red cost is less than the number of gold "
+						    "tokens you "
+						    "want to use as joker!");
 					if ((choices == "green" || "Green") && (nb > green_cost))
 						throw SplendorException(
-						    "Le cout green est inférieur au nombre de tokens "
-						    "or "
-						    "que vous "
-						    "souhaitez utiliser en tant que joker!");
+						    "The green cost is less than the number of gold "
+						    "tokens "
+						    "you "
+						    "want to use as joker!");
 					if ((choices == "black" || "Black") && (nb > black_cost))
 						throw SplendorException(
-						    "Le cout black est inférieur au nombre de tokens "
-						    "or "
-						    "que vous "
-						    "souhaitez utiliser en tant que joker!");
-					if ((choices == "perl" || "Perle") && (nb > white_cost))
+						    "The black cost is less than the number of gold "
+						    "tokens "
+						    "you "
+						    "want to use as joker!");
+					if ((choices == "perl" || "Pearl") && (nb > white_cost))
 						throw SplendorException(
-						    "Le cout perl est inférieur au nombre de tokens "
-						    "or que vous "
-						    "souhaitez utiliser en tant que joker!");
+						    "The perl cost is less than the number of gold "
+						    "tokens you "
+						    "want to use as joker!");
 					if (choices != "white" || "White" || "blue" || "Blue" ||
 					    "red" || "Red" || "green" || "Green" || "black" ||
-					    "Black" || "perl" || "Perle")
-						throw SplendorException("Couleur de jeton inconnue!");
+					    "Black" || "perl" || "Pearl")
+						throw SplendorException("Unknown token color!");
 
-					// Si on a passé tous ces tests, on peut utiliser les tokens
-					// or
+					// If all checks passed, we can use the gold
+					// tokens
 					nb_gold += nb;
 					if (choices == "white" || "White")
 						white_cost = positiveOrNull(white_cost - nb);
@@ -2111,7 +2106,7 @@ void Player::buyReservedCard(const int index) {
 						green_cost = positiveOrNull(green_cost - nb);
 					if (choices == "black" || "Black")
 						black_cost = positiveOrNull(black_cost - nb);
-					if (choices == "perl" || "Perle")
+					if (choices == "perl" || "Pearl")
 						perl_cost = positiveOrNull(perl_cost - nb);
 				} catch (SplendorException e) {
 					cout << e.getInfo() << endl;
@@ -2120,10 +2115,10 @@ void Player::buyReservedCard(const int index) {
 		}
 	}
 
-	// Vérifier si assez de tokens
+	// Check if enough tokens
 	int eligible_purchase = 0;
 
-	// vérifier si on a le nombre de tokens pour acheter
+	// check if we have enough tokens to buy
 	if (TokenAmount(Color::white) >= white_cost &&
 	    TokenAmount(Color::blue) >= blue_cost &&
 	    TokenAmount(Color::red) >= red_cost &&
@@ -2134,9 +2129,9 @@ void Player::buyReservedCard(const int index) {
 	}
 
 	if (eligible_purchase == 0)
-		throw SplendorException("Pas assez de tokens pour acheter la card !");
+		throw SplendorException("Not enough tokens to buy the card!");
 
-	// Retirer les tokens utilisés et les mettre dans le bag
+	// Remove used tokens and put them back in the bag
 	withdrawTokens(Color::white, white_cost);
 	withdrawTokens(Color::blue, blue_cost);
 	withdrawTokens(Color::red, red_cost);
@@ -2158,18 +2153,18 @@ void Player::buyReservedCard(const int index) {
 
 void Player::buyReservedCard_Qt(const int index) {
 	if (reserved_jewelry_cards.size() == 0 || index > 3) {
-		throw SplendorException("Pas de cards réservées");
+		throw SplendorException("No reserved cards");
 	}
 
-	// on doit vérifier que l'achat peut se faire
+	// we must verify that the purchase can be made
 
 	const JewelryCard *card = reserved_jewelry_cards[index];
 
 	if (card->getBonus() == colorBonus::joker and
 	    jokerCardEligibility() == false) {
-		throw SplendorException("Vous n'avez pas le droit d'acheter une card "
-		                        "avec un bonus joker car "
-		                        "vous ne pouvez pas assigner le bonus!");
+		throw SplendorException("You are not allowed to buy a card "
+		                        "with a joker bonus because "
+		                        "you cannot assign the bonus!");
 	}
 
 	int white_cost = positiveOrNull(card->getCostWhite() -
@@ -2189,59 +2184,59 @@ void Player::buyReservedCard_Qt(const int index) {
 
 		char choices;
 		MainWindow::getMainWindow().triggerYesNo(
-		    &choices, "Voulez-vous utiliser un(des) jeton(s) or?");
+		    &choices, "Do you want to use gold token(s)?");
 
 		int nb;
 
 		while ((TokenAmount(Color::gold) > nb_gold) && (choices == 'Y')) {
-			// choices de la color
-			//  recup les 2 val
+			// choose the color
+			//  retrieve the 2 values
 			Color color;
 
 			MainWindow::getMainWindow().triggercolorChoice(&color, &nb);
 
 			try {
 				if (nb > TokenAmount(Color::gold) - nb_gold)
-					throw SplendorException("Vous n'avez pas asseez de tokens "
-					                        "or pour en dépenser autant!");
+					throw SplendorException("You don't have enough gold tokens "
+					                        "to spend that many!");
 				if ((color == Color::white) && (nb > white_cost))
 					throw SplendorException(
-					    "Le cout white est inférieur au nombre de tokens or "
-					    "que vous "
-					    "souhaitez utiliser en tant que joker!");
+					    "The white cost is less than the number of gold tokens "
+					    "you "
+					    "want to use as joker!");
 				if ((color == Color::blue) && (nb > blue_cost))
 					throw SplendorException(
-					    "Le cout blue est inférieur au nombre de tokens or que "
-					    "vous "
-					    "souhaitez utiliser en tant que joker!");
+					    "The blue cost is less than the number of gold tokens "
+					    "you "
+					    "want to use as joker!");
 				if ((color == Color::red) && (nb > red_cost))
 					throw SplendorException(
-					    "Le cout red est inférieur au nombre de tokens or "
-					    "que vous "
-					    "souhaitez utiliser en tant que joker!");
+					    "The red cost is less than the number of gold tokens "
+					    "you "
+					    "want to use as joker!");
 				if ((color == Color::green) && (nb > green_cost))
 					throw SplendorException(
-					    "Le cout green est inférieur au nombre de tokens or "
-					    "que "
-					    "vous "
-					    "souhaitez utiliser en tant que joker!");
+					    "The green cost is less than the number of gold tokens "
+					    "you "
+					    " "
+					    "want to use as joker!");
 				if ((color == Color::black) && (nb > black_cost))
 					throw SplendorException(
-					    "Le cout black est inférieur au nombre de tokens or "
-					    "que "
-					    "vous "
-					    "souhaitez utiliser en tant que joker!");
+					    "The black cost is less than the number of gold tokens "
+					    "you "
+					    " "
+					    "want to use as joker!");
 				if ((color == Color::perl) && (nb > white_cost))
 					throw SplendorException(
-					    "Le cout perl est inférieur au nombre de tokens or "
-					    "que vous "
-					    "souhaitez utiliser en tant que joker!");
+					    "The perl cost is less than the number of gold tokens "
+					    "you "
+					    "want to use as joker!");
 				if ((color != Color::white) && (color != Color::blue) &&
 				    (color != Color::red) && (color != Color::green) &&
 				    (color != Color::black) && (color != Color::perl))
-					throw SplendorException("Couleur de jeton!");
+					throw SplendorException("Unknown token color!");
 
-				// Si on a passé tous ces tests, on peut utiliser les tokens or
+				// If all checks passed, we can use the gold tokens
 				nb_gold += nb;
 				if (color == Color::white)
 					white_cost = positiveOrNull(white_cost - nb);
@@ -2261,14 +2256,14 @@ void Player::buyReservedCard_Qt(const int index) {
 			}
 			if (TokenAmount(Color::gold) > nb_gold)
 				MainWindow::getMainWindow().triggerYesNo(
-				    &choices, "Utiliser encore un jeton or ?");
+				    &choices, "Use another gold token?");
 		}
 	}
 
-	// Vérifier si assez de tokens
+	// Check if enough tokens
 	int eligible_purchase = 0;
 
-	// vérifier si on a le nombre de tokens pour acheter
+	// check if we have enough tokens to buy
 	if (TokenAmount(Color::white) >= white_cost &&
 	    TokenAmount(Color::blue) >= blue_cost &&
 	    TokenAmount(Color::red) >= red_cost &&
@@ -2279,9 +2274,9 @@ void Player::buyReservedCard_Qt(const int index) {
 	}
 
 	if (eligible_purchase == 0)
-		throw SplendorException("Pas assez de tokens pour acheter la card !");
+		throw SplendorException("Not enough tokens to buy the card!");
 
-	// Retirer les tokens utilisés et les mettre dans le bag
+	// Remove used tokens and put them back in the bag
 	withdrawTokens(Color::white, white_cost);
 	withdrawTokens(Color::blue, blue_cost);
 	withdrawTokens(Color::red, red_cost);
@@ -2302,46 +2297,46 @@ void Player::buyReservedCard_Qt(const int index) {
 }
 
 void Player::royalCardSelection() {
-	cout << "Votre nombre de couronne vous donne le droit de piocher une card "
-	        "royale!"
+	cout << "Your crown count allows you to draw a royal "
+	        "card!"
 	     << endl;
 	Game::getGame().printRoyalCards();
 	int tmp;
-	bool choix_ok = 0;
-	while (!choix_ok) {
-		cout << "Veuillez entrer l'index de la card royale que vous souhaitez "
-		        "prendre:"
+	bool choice_ok = 0;
+	while (!choice_ok) {
+		cout << "Please enter the index of the royal card you want "
+		        "to take:"
 		     << endl;
 		cout << "choices: ";
 		cin >> tmp;
 		if (tmp >= 0 and tmp < Game::getGame().getRoyalCards().size()) {
 			string validate;
-			cout << "Valider ? [Y/N] :" << endl;
+			cout << "Confirm? [Y/N]:" << endl;
 			cout << "choices : ";
 			cin >> validate;
 			if (validate == "Y") {
-				choix_ok = 1; // on peut sortir de la boucle
+				choice_ok = 1; // we can exit the loop
 			}
 		} else {
-			cout << "Indice de card invalide!" << endl;
+			cout << "Invalid card index!" << endl;
 		}
 	}
 	obtainRoyalCard(tmp);
 }
 
-// Surcharge Qt
+// Qt overload
 
 void Player::royalCardSelection_Qt() {
 
 	MainWindow::getMainWindow().activateForRoyalCard();
-	MainWindow::getMainWindow().getCarteWaitLoop()->exec();
+	MainWindow::getMainWindow().getCardWaitLoop()->exec();
 
-	Qt_carte *last_card_clicked =
+	Qt_card *last_card_clicked =
 	    MainWindow::getMainWindow().getLastCardClicked();
 
 	int tmp =
 	    last_card_clicked
-	        ->getIndex(); // Récupération de l'index à l'aide d'un signal ici
+	        ->getIndex(); // Retrieve the index using a signal here
 
 	obtainRoyalCard_qt(tmp);
 }
@@ -2349,23 +2344,23 @@ void Player::royalCardSelection_Qt() {
 void Player::tokenVerification() {
 	if (token_number > 10) {
 		int nb = token_number - 10;
-		cout << "Vous avez trop de tokens, vous devez en remettre " << nb
-		     << " dans le bag." << endl;
-		cout << "Voici vos tokens:" << endl;
+		cout << "You have too many tokens, you must return " << nb
+		     << " to the bag." << endl;
+		cout << "Here are your tokens:" << endl;
 		for (int i = 0; i < token_number; i++) {
-			cout << "Indice " << i << " : " << *tokens[i] << endl;
+			cout << "Index " << i << " : " << *tokens[i] << endl;
 		}
 		vector<int> tab(0);
 		int i = 0;
 		int curNb = nb;
 		while (curNb > 0) {
 			int tmp;
-			cout << "Indice du jeton " << i++ << " :" << endl;
-			cout << "Choix : ";
+			cout << "Token index " << i++ << ":" << endl;
+			cout << "Choice: ";
 			cin >> tmp;
 			bool inTab = 0;
 			for (int j = 0; j < tab.size();
-			     j++) { // vérification qu'on a pas déjà essayé de l'enlever
+			     j++) { // check if we haven't already tried to remove it
 				if (tab[j] == tmp) {
 					inTab = 1;
 				}
@@ -2375,12 +2370,12 @@ void Player::tokenVerification() {
 				curNb--;
 			}
 		}
-		// tri du tableau
+		// sort the array
 		std::make_heap(tab.begin(), tab.end());
 		std::sort_heap(tab.begin(), tab.end());
 		for (int k = tab.size() - 1; k >= 0;
-		     k--) { // suppression de la fin vers le début pour ne pas décaler
-			        // les indices
+		     k--) { // remove from end to start to avoid shifting
+			        // indices
 			Bag::get().insertToken(tokens[tab[k]]);
 			tokens.erase(tokens.begin() + tab[k]);
 			token_number--;
@@ -2393,7 +2388,7 @@ void Player::tokenVerification_Qt() {
 		MainWindow::getMainWindow().setDiscarding(true);
 		MainWindow::getMainWindow().deactivateButtons();
 		int nb = token_number - 10;
-		MainWindow::getMainWindow().triggerInfo("Vous devez enlever " +
+		MainWindow::getMainWindow().triggerInfo("You must remove " +
 		                                        std::to_string(nb) + " tokens");
 
 		vector<int> tab(0);
@@ -2401,12 +2396,12 @@ void Player::tokenVerification_Qt() {
 		int curNb = nb;
 		while (curNb > 0) {
 
-			MainWindow::getMainWindow().getJetonWaitLoop()->exec();
+			MainWindow::getMainWindow().getTokenWaitLoop()->exec();
 			int tmp = MainWindow::getMainWindow().getTokenIndexOnClick();
 
 			bool inTab = 0;
 			for (int j = 0; j < tab.size();
-			     j++) { // vérification qu'on a pas déjà essayé de l'enlever
+			     j++) { // check if we haven't already tried to remove it
 				if (tab[j] == tmp) {
 					inTab = 1;
 				}
@@ -2417,12 +2412,12 @@ void Player::tokenVerification_Qt() {
 			}
 		}
 		MainWindow::getMainWindow().acceptCurrentDialog();
-		// tri du tableau
+		// sort the array
 		std::make_heap(tab.begin(), tab.end());
 		std::sort_heap(tab.begin(), tab.end());
 		for (int k = tab.size() - 1; k >= 0;
-		     k--) { // suppression de la fin vers le début pour ne pas décaler
-			        // les indices
+		     k--) { // remove from end to start to avoid shifting
+			        // indices
 			Bag::get().insertToken(tokens[tab[k]]);
 			tokens.erase(tokens.begin() + tab[k]);
 			token_number--;
@@ -2440,20 +2435,20 @@ RandomPlayer::RandomPlayer(const string &name) : StrategyPlayer(name) {}
 RandomPlayer::RandomPlayer(const json data) : StrategyPlayer(data) {}
 
 RandomPlayer::~RandomPlayer() {
-	// Déstruction cards royales
+	// Destroy royal cards
 	for (auto royal_cards : royal_cards) {
 		delete royal_cards;
 	}
 	royal_cards.clear();
 
-	// Déstruction privilèges
+	// Destroy privileges
 	for (auto privilege : privileges) {
 		delete privilege;
 	}
 	privileges.clear();
 }
 
-// Méthodes polymorphiques adaptées pour un RandomPlayer
+// Polymorphic methods adapted for a RandomPlayer
 void RandomPlayer::choice() {
 	cout << "choices RandomPlayer:" << endl;
 	bool end_choice = 0;
@@ -2462,54 +2457,54 @@ void RandomPlayer::choice() {
 		try {
 			int i = 0;
 			nb_choice =
-			    getOptionalChoices(); // bien vérifier la convention sur le
-			                          // retour dans la définition de la méthode
+			    getOptionalChoices(); // check the convention on the
+			                          // return in the method definition
 			i += nb_choice + 2;
 			int tmp = rand() % i + 1;
 
 			if (tmp < 1 or tmp > i + 1) {
 				throw SplendorException(
-				    "Il n'y a que" + to_string(i) +
-				    " choices! Vous ne pouvez pas choisir autre chose!\n");
+				    "There are only " + to_string(i) +
+				    " choices! You cannot choose anything else!\n");
 			}
-			switch (nb_choice) { // l'affichage et donc le choices dépend de la
-				                 // valeur de retour des choices optionnels
-			case (0): {          // aucun choices optionnel possible
+			switch (nb_choice) { // the display and therefore the choice depends on the
+				                 // return value of the optional choices
+			case (0): {          // no optional choice possible
 				switch (tmp) {
 				case 1: {
-					cout << "Le RandomPlayer sélectionne des tokens!" << endl;
+					cout << "The RandomPlayer selects tokens!" << endl;
 					tokenSelection();
 					end_choice = 1;
 					break;
 				}
 				case 2: {
-					cout << "Le RandomPlayer achète des cards!" << endl;
+					cout << "The RandomPlayer buys cards!" << endl;
 					cardPurchase();
 					end_choice = 1;
 
 					break;
 				}
-				default: // on continue jusqu'à ce que l'utilisateur choisisse
-				         // une entrée valide!
+				default: // continue until the user chooses
+				         // a valid entry!
 					break;
 				}
 				break;
 			}
-			case (1): { // seulement possible d'utiliser un privilège
+			case (1): { // only possible to use a privilege
 				switch (tmp) {
 				case 1: {
-					cout << "Le RandomPlayer utilise un privilège!" << endl;
+					cout << "The RandomPlayer uses a privilege!" << endl;
 					usePrivilege();
 					break;
 				}
 				case 2: {
-					cout << "Le RandomPlayer sélectionne des tokens!" << endl;
+					cout << "The RandomPlayer selects tokens!" << endl;
 					tokenSelection();
 					end_choice = 1;
 					break;
 				}
 				case 3: {
-					cout << "Le RandomPlayer achète des cards!" << endl;
+					cout << "The RandomPlayer buys cards!" << endl;
 					cardPurchase();
 					end_choice = 1;
 					break;
@@ -2519,21 +2514,21 @@ void RandomPlayer::choice() {
 				}
 				break;
 			}
-			case (2): { // seulement possible de remplir le board
+			case (2): { // only possible to fill the board
 				switch (tmp) {
-				case 1: { // remplissage board
+				case 1: { // fill board
 					cout << "Le RandomPlayer remplie le board!" << endl;
 					fillingBoard();
 					break;
 				}
 				case 2: {
-					cout << "Le RandomPlayer sélectionne des tokens!" << endl;
+					cout << "The RandomPlayer selects tokens!" << endl;
 					tokenSelection();
 					end_choice = 1;
 					break;
 				}
 				case 3: {
-					cout << "Le RandomPlayer achète des cards!" << endl;
+					cout << "The RandomPlayer buys cards!" << endl;
 					cardPurchase();
 					end_choice = 1;
 					break;
@@ -2543,26 +2538,26 @@ void RandomPlayer::choice() {
 				}
 				break;
 			}
-			case (3): { // deux choices optionnels possibles
+			case (3): { // two optional choices possible
 				switch (tmp) {
 				case 1: {
-					cout << "Le RandomPlayer utilise un privilège!" << endl;
+					cout << "The RandomPlayer uses a privilege!" << endl;
 					usePrivilege();
 					break;
 				}
-				case 2: { // remplissage board
+				case 2: { // fill board
 					cout << "Le RandomPlayer remplie le board!" << endl;
 					fillingBoard();
 					break;
 				}
 				case 3: {
-					cout << "Le RandomPlayer sélectionne des tokens!" << endl;
+					cout << "The RandomPlayer selects tokens!" << endl;
 					tokenSelection();
 					end_choice = 1;
 					break;
 				}
 				case 4: {
-					cout << "Le RandomPlayer achète des cards!" << endl;
+					cout << "The RandomPlayer buys cards!" << endl;
 					cardPurchase();
 					end_choice = 1;
 					break;
@@ -2582,7 +2577,7 @@ void RandomPlayer::choice() {
 	}
 }
 
-// surcharge Qt
+// Qt overload
 
 void RandomPlayer::choice_Qt() {
 	cout << "choices RandomPlayer:" << endl;
@@ -2593,54 +2588,54 @@ void RandomPlayer::choice_Qt() {
 		try {
 			int i = 0;
 			nb_choice =
-			    getOptionalChoices(); // bien vérifier la convention sur le
-			                          // retour dans la définition de la méthode
+			    getOptionalChoices(); // check the convention on the
+			                          // return in the method definition
 			i += nb_choice + 2;
 			int tmp = rand() % i + 1;
 
 			if (tmp < 1 or tmp > i + 1) {
 				throw SplendorException(
-				    "Il n'y a que" + to_string(i) +
-				    " choices! Vous ne pouvez pas choisir autre chose!\n");
+				    "There are only " + to_string(i) +
+				    " choices! You cannot choose anything else!\n");
 			}
 			QCoreApplication::processEvents();
-			switch (nb_choice) { // l'affichage et donc le choices dépend de la
-				                 // valeur de retour des choices optionnels
-			case (0): {          // aucun choices optionnel possible
+			switch (nb_choice) { // the display and therefore the choice depends on the
+				                 // return value of the optional choices
+			case (0): {          // no optional choice possible
 				switch (tmp) {
 				case 1: {
-					cout << "Le RandomPlayer sélectionne des tokens!" << endl;
+					cout << "The RandomPlayer selects tokens!" << endl;
 					tokenSelection();
 					end_choice = 1;
 					break;
 				}
 				case 2: {
-					cout << "Le RandomPlayer achète des cards!" << endl;
+					cout << "The RandomPlayer buys cards!" << endl;
 					cardPurchase();
 					end_choice = 1;
 					break;
 				}
-				default: // on continue jusqu'à ce que l'utilisateur choisisse
-				         // une entrée valide!
+				default: // continue until the user chooses
+				         // a valid entry!
 					break;
 				}
 				break;
 			}
-			case (1): { // seulement possible d'utiliser un privilège
+			case (1): { // only possible to use a privilege
 				switch (tmp) {
 				case 1: {
-					cout << "Le RandomPlayer utilise un privilège!" << endl;
+					cout << "The RandomPlayer uses a privilege!" << endl;
 					usePrivilege();
 					break;
 				}
 				case 2: {
-					cout << "Le RandomPlayer sélectionne des tokens!" << endl;
+					cout << "The RandomPlayer selects tokens!" << endl;
 					tokenSelection();
 					end_choice = 1;
 					break;
 				}
 				case 3: {
-					cout << "Le RandomPlayer achète des cards!" << endl;
+					cout << "The RandomPlayer buys cards!" << endl;
 					cardPurchase();
 					end_choice = 1;
 					break;
@@ -2650,21 +2645,21 @@ void RandomPlayer::choice_Qt() {
 				}
 				break;
 			}
-			case (2): { // seulement possible de remplir le board
+			case (2): { // only possible to fill the board
 				switch (tmp) {
-				case 1: { // remplissage board
+				case 1: { // fill board
 					cout << "Le RandomPlayer remplie le board!" << endl;
 					fillingBoard();
 					break;
 				}
 				case 2: {
-					cout << "Le RandomPlayer sélectionne des tokens!" << endl;
+					cout << "The RandomPlayer selects tokens!" << endl;
 					tokenSelection();
 					end_choice = 1;
 					break;
 				}
 				case 3: {
-					cout << "Le RandomPlayer achète des cards!" << endl;
+					cout << "The RandomPlayer buys cards!" << endl;
 					cardPurchase();
 					end_choice = 1;
 					break;
@@ -2674,26 +2669,26 @@ void RandomPlayer::choice_Qt() {
 				}
 				break;
 			}
-			case (3): { // deux choices optionnels possibles
+			case (3): { // two optional choices possible
 				switch (tmp) {
 				case 1: {
-					cout << "Le RandomPlayer utilise un privilège!" << endl;
+					cout << "The RandomPlayer uses a privilege!" << endl;
 					usePrivilege();
 					break;
 				}
-				case 2: { // remplissage board
+				case 2: { // fill board
 					cout << "Le RandomPlayer remplie le board!" << endl;
 					fillingBoard();
 					break;
 				}
 				case 3: {
-					cout << "Le RandomPlayer sélectionne des tokens!" << endl;
+					cout << "The RandomPlayer selects tokens!" << endl;
 					tokenSelection();
 					end_choice = 1;
 					break;
 				}
 				case 4: {
-					cout << "Le RandomPlayer achète des cards!" << endl;
+					cout << "The RandomPlayer buys cards!" << endl;
 					cardPurchase();
 					end_choice = 1;
 					break;
@@ -2721,7 +2716,7 @@ void RandomPlayer::choice_Qt() {
 
 void RandomPlayer::usePrivilege() {
 	if (privilege_number <= 0)
-		throw SplendorException("Vous n'avez pas de privilège!");
+		throw SplendorException("You do not have a privilege!");
 	unsigned int index = rand() % Token::getMaxTokenNumber();
 	Game::getGame().getPlayerRound().drawToken(index);
 	withdrawPrivilege();
@@ -2729,16 +2724,16 @@ void RandomPlayer::usePrivilege() {
 
 void RandomPlayer::tokenSelection() {
 	bool nb_ok = 0;
-	bool choix_ok = 0;
+	bool choice_ok = 0;
 
 	if (Board::getBoard().onlyGold() and
 	    Game::getGame().getPlayerRound().getReservedCardNumber() >= 3)
 		throw SplendorException(
-		    "Pas possible de piocher: il ne reste que des tokens or et vous ne "
-		    "pouvez plus réserver de card!");
+		    "Cannot draw: only gold tokens remain and you cannot "
+		    "reserve any more cards!");
 	if (Board::getBoard().getCurrentNb() == 0)
 		throw SplendorException("Board vide!");
-	while (!choix_ok) {
+	while (!choice_ok) {
 		try {
 			std::vector<int> tmp_tab(0);
 			optional<Position> pos = nullopt;
@@ -2749,32 +2744,32 @@ void RandomPlayer::tokenSelection() {
 				unsigned int index;
 				index = rand() % Token::getMaxTokenNumber();
 
-				if (tmp_tab.size() > 0) { // actif que après le 1e choices
+				if (tmp_tab.size() > 0) { // active only after the 1st choice
 					if (rand() % 2 == 0) {
 						break;
 					}
 				}
 				if (Board::getBoard().getBoardCaseByIndex(index) ==
-				    nullptr) { // le nombre de cases sur le board correspond
-					           // au nombre de tokens dans le game
+				    nullptr) { // the number of cells on the board corresponds
+					           // to the number of tokens in the game
 					gold_number = 0;
 					perl_number = 0;
 					tmp_tab.clear();
 
 					throw SplendorException(
-					    "Il n'y a pas de jeton à cet index!\n");
+					    "There is no token at this index!\n");
 				}
 				if (index >
-				    Token::getMaxTokenNumber()) { // le nombre de cases sur le
-					                              // board correspond au nombre
-					                              // de tokens dans le game
+				    Token::getMaxTokenNumber()) { // the number of cells on the
+					                              // board corresponds to the
+					                              // number of tokens in the game
 					gold_number = 0;
 					perl_number = 0;
 					tmp_tab.clear();
 					throw SplendorException(
-					    "Il n'y a que " +
+					    "There are only " +
 					    std::to_string(Token::getMaxTokenNumber()) +
-					    " places sur le board\n");
+					    " places on the board\n");
 				}
 				if (Board::getBoard().getBoardCaseByIndex(index)->getColor() ==
 				    Color::gold) {
@@ -2791,20 +2786,20 @@ void RandomPlayer::tokenSelection() {
 					perl_number = 0;
 					tmp_tab.clear();
 					throw SplendorException(
-					    "Vous n'avez pas le droit de réserver une card "
-					    "supplémentaire!");
+					    "You are not allowed to reserve an additional "
+					    "card!");
 				}
 				if (gold_number == 1 and tmp_tab.size() > 0) {
 					gold_number = 0;
 					perl_number = 0;
 					tmp_tab.clear();
-					throw SplendorException("Attention, on ne peut prendre un "
-					                        "jeton or seulement tout seul!");
+					throw SplendorException("Warning, you can only take a "
+					                        "gold token by itself!");
 				}
 				tmp_tab.push_back(index);
 			}
 
-			// tri du vecteur par selection
+			// sort the vector by selection
 			int min = 0;
 			for (int j = 0; j < tmp_tab.size() - 1; j++) {
 				min = j;
@@ -2819,48 +2814,48 @@ void RandomPlayer::tokenSelection() {
 					tmp_tab[j] = tmp2;
 				}
 			}
-			// vecteur trié
-			// cout<<"vecteur trié\n";
+			// sorted vector
+			// cout<<"sorted vector\n";
 
 			if (tmp_tab.size() ==
-			    2) { // vérification de l'alignement pour 2 tokens
-				// cout<<"vérification pour 2 tokens\n";
-				const Token *jet1 =
+			    2) { // alignment check for 2 tokens
+				// cout<<"check for 2 tokens\n";
+				const Token *tok1 =
 				    Board::getBoard().getBoardCaseByIndex(tmp_tab[0]);
 				optional<Position> pos1 =
-				    Board::getBoard().tokensAreASide(tmp_tab[1], jet1);
+				    Board::getBoard().tokensAreASide(tmp_tab[1], tok1);
 				if (pos1 == nullopt) {
-					throw SplendorException("Jetons non-alignés\n");
+					throw SplendorException("Tokens not aligned\n");
 				}
 			}
 			if (tmp_tab.size() ==
-			    3) { // vérification de l'alignement pour 3 tokens
-				// cout<<"vérification pour 3 tokens\n";
-				const Token *jet1 =
+			    3) { // alignment check for 3 tokens
+				// cout<<"check for 3 tokens\n";
+				const Token *tok1 =
 				    Board::getBoard().getBoardCaseByIndex(tmp_tab[1]);
 				optional<Position> pos1 =
-				    Board::getBoard().tokensAreASide(tmp_tab[0], jet1);
+				    Board::getBoard().tokensAreASide(tmp_tab[0], tok1);
 
-				const Token *jet2 =
+				const Token *tok2 =
 				    Board::getBoard().getBoardCaseByIndex(tmp_tab[2]);
 				optional<Position> pos2 =
-				    Board::getBoard().tokensAreASide(tmp_tab[1], jet2);
+				    Board::getBoard().tokensAreASide(tmp_tab[1], tok2);
 
 				if ((pos1 != pos2) || (pos1 == nullopt) || (pos2 == nullopt)) {
-					throw SplendorException("Jetons non-alignés\n");
+					throw SplendorException("Tokens not aligned\n");
 				}
 			}
 
-			// on a vérifié l'alignement des tokens
+			// we have verified the token alignment
 			if (perl_number ==
-			    2) { // obtention d'un privilège par l'opponent si
-				     // on deck les 2 tokens perles en une fois
+			    2) { // opponent gets a privilege if
+				     // we draw 2 perl tokens at once
 				Game::getGame().getOpponent().obtainPrivilege();
 			}
 
 			if (tmp_tab.size() ==
-			    3) { // obtention d'un privilège par l'opponent si
-				     // les 3 tokens sont de la même color
+			    3) { // opponent gets a privilege if
+				     // all 3 tokens are the same color
 				if ((Board::getBoard()
 				         .getBoardCaseByIndex(tmp_tab[0])
 				         ->getColor() == Board::getBoard()
@@ -2875,13 +2870,13 @@ void RandomPlayer::tokenSelection() {
 				}
 			}
 			for (int i = 0; i < tmp_tab.size();
-			     i++) { // acquisition des tokens par le player
+			     i++) { // token acquisition by the player
 				Game::getGame().getCurrentPlayer().drawToken(tmp_tab[i]);
 			}
 			if (gold_number == 1) {
 				cardReservation();
 			}
-			choix_ok = 1;
+			choice_ok = 1;
 		} catch (SplendorException &e) {
 			cout << e.getInfo() << "\n";
 		}
@@ -2889,10 +2884,10 @@ void RandomPlayer::tokenSelection() {
 }
 
 void RandomPlayer::cardReservation() {
-	if (rand() % 2 == 0) { // réservation sur un draw
+	if (rand() % 2 == 0) { // reserve from a draw
 		int draw = rand() % Deck::getDecksNumber() +
-		           1; // on suppose que le nombre de deck est égal au nombre
-		              // de draw (entre 1 et 3)
+		           1; // we assume the number of decks equals the number
+		              // of draws (between 1 and 3)
 		switch (draw) {
 		case 1: {
 			unsigned int index =
@@ -2913,8 +2908,8 @@ void RandomPlayer::cardReservation() {
 			break;
 		}
 		}
-	} else { // on reserve sur une deck
-		int deck = rand() % Deck::getDecksNumber() + 1; // entre 1 et 3
+	} else { // reserve from a deck
+		int deck = rand() % Deck::getDecksNumber() + 1; // between 1 and 3
 		reserveCard(Game::getGame().getDeck(deck));
 	}
 	for (auto c : Game::getGame().getCurrentPlayer().getReservedCards()) {
@@ -2925,52 +2920,52 @@ void RandomPlayer::cardReservation() {
 void RandomPlayer::cardPurchase() {
 	unsigned int choice = -1;
 	if (Game::getGame().getCurrentPlayer().getReservedCardNumber() >
-	    0) { // si le player a des cards reservées
+	    0) { // if the player has reserved cards
 		choice = rand() % 2;
-		if (choice == 1) { // achat d'une card qu'il a reservé
-			cout << "\nAchat d'une card reservée!" << endl;
-			int nb_carte_reservee =
+		if (choice == 1) { // buy a reserved card
+			cout << "\nBuying a reserved card!" << endl;
+			int nb_reserved_cards =
 			    Game::getGame().getCurrentPlayer().getReservedCards().size();
-			unsigned int index = rand() % nb_carte_reservee;
+			unsigned int index = rand() % nb_reserved_cards;
 			Game::getGame().getCurrentPlayer().buyReservedCard(index);
 		} else {
-			cout << "\nAchat d'une card sur un draw!" << endl;
-			int draw = (rand() % Deck::getDecksNumber()) + 1; // entre 1 et 3
+			cout << "\nBuying a card from a draw!" << endl;
+			int draw = (rand() % Deck::getDecksNumber()) + 1; // between 1 and 3
 			switch (draw) {
 			case 1: {
-				cout << "Achat d'une card du draw 1." << endl;
-				unsigned int nbCartesT1 =
+				cout << "Buying a card from draw 1." << endl;
+				unsigned int numCardsT1 =
 				    Game::getGame().getFirstDraw()->getCardsNumber();
-				if (nbCartesT1 == 0)
-					throw SplendorException("Plus de card dans le Draw 1");
-				unsigned int index = rand() % nbCartesT1;
-				cout << *Game::getGame().getFirstDraw()->getTirage()[index]
+				if (numCardsT1 == 0)
+					throw SplendorException("No more cards in Draw 1");
+				unsigned int index = rand() % numCardsT1;
+				cout << *Game::getGame().getFirstDraw()->getDrawCards()[index]
 				     << endl;
 				Game::getGame().getCurrentPlayer().buyCard(
 				    Game::getGame().getFirstDraw(), index);
 				break;
 			}
 			case 2: {
-				cout << "Achat d'une card du draw 2." << endl;
-				unsigned int nbCartesT2 =
+				cout << "Buying a card from draw 2." << endl;
+				unsigned int numCardsT2 =
 				    Game::getGame().getSecondDraw()->getCardsNumber();
-				if (nbCartesT2 == 0)
-					throw SplendorException("Plus de card dans le Draw 2");
-				unsigned int index = rand() % nbCartesT2;
-				cout << *Game::getGame().getSecondDraw()->getTirage()[index]
+				if (numCardsT2 == 0)
+					throw SplendorException("No more cards in Draw 2");
+				unsigned int index = rand() % numCardsT2;
+				cout << *Game::getGame().getSecondDraw()->getDrawCards()[index]
 				     << endl;
 				Game::getGame().getCurrentPlayer().buyCard(
 				    Game::getGame().getSecondDraw(), index);
 				break;
 			}
 			case 3: {
-				cout << "Achat d'une card du draw 3." << endl;
-				unsigned int nbCartesT3 =
+				cout << "Buying a card from draw 3." << endl;
+				unsigned int numCardsT3 =
 				    Game::getGame().getThirdDraw()->getCardsNumber();
-				if (nbCartesT3 == 0)
-					throw SplendorException("Plus de card dans le Draw 3");
-				unsigned int index = rand() % nbCartesT3;
-				cout << *Game::getGame().getThirdDraw()->getTirage()[index]
+				if (numCardsT3 == 0)
+					throw SplendorException("No more cards in Draw 3");
+				unsigned int index = rand() % numCardsT3;
+				cout << *Game::getGame().getThirdDraw()->getDrawCards()[index]
 				     << endl;
 				Game::getGame().getCurrentPlayer().buyCard(
 				    Game::getGame().getThirdDraw(), index);
@@ -2978,43 +2973,43 @@ void RandomPlayer::cardPurchase() {
 			}
 			}
 		}
-	} else { // si on ne peut que acheter
-		cout << "\nAchat d'une card sur un draw!" << endl;
-		int draw = (rand() % Deck::getDecksNumber()) + 1; // entre 1 et 3
+	} else { // if we can only buy
+		cout << "\nBuying a card from a draw!" << endl;
+		int draw = (rand() % Deck::getDecksNumber()) + 1; // between 1 and 3
 		switch (draw) {
 		case 1: {
-			cout << "Achat d'une card du draw 1." << endl;
-			unsigned int nbCartesT1 =
+			cout << "Buying a card from draw 1." << endl;
+			unsigned int numCardsT1 =
 			    Game::getGame().getFirstDraw()->getCardsNumber();
-			if (nbCartesT1 == 0)
-				throw SplendorException("Plus de card dans le Draw 1");
-			unsigned int index = rand() % nbCartesT1;
-			cout << *Game::getGame().getFirstDraw()->getTirage()[index] << endl;
+			if (numCardsT1 == 0)
+				throw SplendorException("No more cards in Draw 1");
+			unsigned int index = rand() % numCardsT1;
+			cout << *Game::getGame().getFirstDraw()->getDrawCards()[index] << endl;
 			Game::getGame().getCurrentPlayer().buyCard(
 			    Game::getGame().getFirstDraw(), index);
 			break;
 		}
 		case 2: {
-			cout << "Achat d'une card du draw 2." << endl;
-			unsigned int nbCartesT2 =
+			cout << "Buying a card from draw 2." << endl;
+			unsigned int numCardsT2 =
 			    Game::getGame().getSecondDraw()->getCardsNumber();
-			if (nbCartesT2 == 0)
-				throw SplendorException("Plus de card dans le Draw 2");
-			unsigned int index = rand() % nbCartesT2;
-			cout << *Game::getGame().getSecondDraw()->getTirage()[index]
+			if (numCardsT2 == 0)
+				throw SplendorException("No more cards in Draw 2");
+			unsigned int index = rand() % numCardsT2;
+			cout << *Game::getGame().getSecondDraw()->getDrawCards()[index]
 			     << endl;
 			Game::getGame().getCurrentPlayer().buyCard(
 			    Game::getGame().getSecondDraw(), index);
 			break;
 		}
 		case 3: {
-			cout << "Achat d'une card du draw 3." << endl;
-			unsigned int nbCartesT3 =
+			cout << "Buying a card from draw 3." << endl;
+			unsigned int numCardsT3 =
 			    Game::getGame().getThirdDraw()->getCardsNumber();
-			if (nbCartesT3 == 0)
+			if (numCardsT3 == 0)
 				throw SplendorException("Plus de card de le Draw 3");
-			unsigned int index = rand() % nbCartesT3;
-			cout << *Game::getGame().getThirdDraw()->getTirage()[index] << endl;
+			unsigned int index = rand() % numCardsT3;
+			cout << *Game::getGame().getThirdDraw()->getDrawCards()[index] << endl;
 			Game::getGame().getCurrentPlayer().buyCard(
 			    Game::getGame().getThirdDraw(), index);
 			break;
@@ -3028,13 +3023,13 @@ void RandomPlayer::buyCard(Draw *t, const int index) {
 
 	if (card.getBonus() == colorBonus::joker and
 	    jokerCardEligibility() == false) {
-		throw SplendorException("Vous n'avez pas le droit d'acheter une card "
-		                        "avec un bonus joker car "
-		                        "vous ne pouvez pas assigner le bonus!");
+		throw SplendorException("You are not allowed to buy a card "
+		                        "with a joker bonus because "
+		                        "you cannot assign the bonus!");
 	}
 
-	// ici calculer bonus permet de retirer du cout total des cards le bonus
-	// des cards déjà possédées.
+	// here calculating bonus removes the bonus from the total card cost
+	// of already owned cards.
 	int white_cost =
 	    positiveOrNull(card.getCostWhite() - calculateBonus(colorBonus::white));
 	int blue_cost =
@@ -3047,20 +3042,20 @@ void RandomPlayer::buyCard(Draw *t, const int index) {
 	    positiveOrNull(card.getCostBlack() - calculateBonus(colorBonus::black));
 	int perl_cost = card.getCostPerl();
 
-	// Vérifier si le player veut utiliser des tokens en or (s'il en possède)
-	// Et diminuer le coût respectivement
+	// Check if the player wants to use gold tokens (if they have any)
+	// And reduce the cost accordingly
 	int nb_gold = 0;
 	if (TokenAmount(Color::gold) > 0) {
 		while (TokenAmount(Color::gold) > nb_gold and
 		       rand() % 2 ==
-		           1) { // rand pour arret aléatoire entre les choices
-			            // (possibilité de ne pas utiliser tous les tokens)
-			// choices de la color
-			if (rand() % 2 == 1) { // on arrête la
+		           1) { // random stop between choices
+			            // (possibility of not using all tokens)
+			// choose the color
+			if (rand() % 2 == 1) { // we stop here
 				break;
 			}
 
-			// choices du nombre de tokens or utilisé pour la color en question
+			// choose the number of gold tokens used for the color in question
 			int nb = rand() % TokenAmount(Color::gold) - nb_gold;
 			int choices = rand() % 6;
 			if (choices == 0 and white_cost >= nb)
@@ -3081,13 +3076,13 @@ void RandomPlayer::buyCard(Draw *t, const int index) {
 			if (choices == 5 and perl_cost >= nb)
 				perl_cost -= nb;
 			nb_gold += nb;
-			// si pas de bon choices par rapport au cout, l'ia recommence
+			// if no good choices relative to cost, the AI retries
 		}
 	}
-	// Vérifier si assez de tokens
+	// Check if enough tokens
 	int eligible_purchase = 0;
 
-	// vérifier si on a le nombre de tokens pour acheter
+	// check if we have enough tokens to buy
 	if (TokenAmount(Color::white) >= white_cost &&
 	    TokenAmount(Color::blue) >= blue_cost &&
 	    TokenAmount(Color::red) >= red_cost &&
@@ -3098,9 +3093,9 @@ void RandomPlayer::buyCard(Draw *t, const int index) {
 	}
 
 	if (eligible_purchase == 0)
-		throw SplendorException("Pas assez de tokens pour acheter la card !");
+		throw SplendorException("Not enough tokens to buy the card!");
 
-	// Retirer les tokens utilisés et les mettre dans le bag
+	// Remove used tokens and put them back in the bag
 	withdrawTokens(Color::white, white_cost);
 	withdrawTokens(Color::blue, blue_cost);
 	withdrawTokens(Color::red, red_cost);
@@ -3109,19 +3104,19 @@ void RandomPlayer::buyCard(Draw *t, const int index) {
 	withdrawTokens(Color::perl, perl_cost);
 	withdrawTokens(Color::gold, nb_gold);
 
-	// Mettre la card dans la main du player et la supprimer du draw
+	// Put the card in the player's hand and remove it from the draw
 	bought_jewelry_cards.push_back(&(t->getCard(index)));
 	try {
 		t->fill();
 	} catch (SplendorException &e) {
 	}
 
-	// Rajouter le nb de couronnes
+	// Add the crown count
 	crown_number += card.getNbCrown();
 	jewelry_cards_number++;
 	points_number += card.getPrestige();
-	// Dans le main tester si eligible pour card royale et appeler get card
-	// royale
+	// In the main, test if eligible for royal card and call get royal
+	// card
 
 	Game::getGame().getCurrentPlayer().applyCapacity(
 	    card, Game::getGame().getOpponent());
@@ -3129,18 +3124,18 @@ void RandomPlayer::buyCard(Draw *t, const int index) {
 
 void RandomPlayer::buyReservedCard(const int index) {
 	if (reserved_jewelry_cards.size() == 0 || index > 3) {
-		throw SplendorException("Pas de cards réservées");
+		throw SplendorException("No reserved cards");
 	}
 
-	// on doit vérifier que l'achat peut se faire
+	// we must verify that the purchase can be made
 
 	const JewelryCard *card = reserved_jewelry_cards[index];
 
 	if (card->getBonus() == colorBonus::joker and
 	    jokerCardEligibility() == false) {
-		throw SplendorException("Vous n'avez pas le droit d'acheter une card "
-		                        "avec un bonus joker car "
-		                        "vous ne pouvez pas assigner le bonus!");
+		throw SplendorException("You are not allowed to buy a card "
+		                        "with a joker bonus because "
+		                        "you cannot assign the bonus!");
 	}
 
 	int white_cost = positiveOrNull(card->getCostWhite() -
@@ -3159,14 +3154,14 @@ void RandomPlayer::buyReservedCard(const int index) {
 	if (TokenAmount(Color::gold) > 0) {
 		while ((TokenAmount(Color::gold) > nb_gold) and
 		       rand() % 2 ==
-		           1) { // rand pour arret aléatoire entre les choices
-			            // (possibilité de ne pas utiliser tous les tokens)
-			// choices de la color
-			if (rand() % 2 == 1) { // on arrête la
+		           1) { // random stop between choices
+			            // (possibility of not using all tokens)
+			// choose the color
+			if (rand() % 2 == 1) { // we stop here
 				break;
 			}
 
-			// choices du nombre de tokens or utilisé pour la color en question
+			// choose the number of gold tokens used for the color in question
 			int nb = rand() % TokenAmount(Color::gold) - nb_gold;
 
 			int choices = rand() % 6;
@@ -3188,14 +3183,14 @@ void RandomPlayer::buyReservedCard(const int index) {
 			if (choices == 5 and perl_cost >= nb)
 				perl_cost -= nb;
 			nb_gold += nb;
-			// si pas de bon choices par rapport au cout, l'ia recommence
+			// if no good choices relative to cost, the AI retries
 		}
 	}
 
-	// Vérifier si assez de tokens
+	// Check if enough tokens
 	int eligible_purchase = 0;
 
-	// vérifier si on a le nombre de tokens pour acheter
+	// check if we have enough tokens to buy
 	if (TokenAmount(Color::white) >= white_cost &&
 	    TokenAmount(Color::blue) >= blue_cost &&
 	    TokenAmount(Color::red) >= red_cost &&
@@ -3206,9 +3201,9 @@ void RandomPlayer::buyReservedCard(const int index) {
 	}
 
 	if (eligible_purchase == 0)
-		throw SplendorException("Pas assez de tokens pour acheter la card !");
+		throw SplendorException("Not enough tokens to buy the card!");
 
-	// Retirer les tokens utilisés et les mettre dans le bag
+	// Remove used tokens and put them back in the bag
 	withdrawTokens(Color::white, white_cost);
 	withdrawTokens(Color::blue, blue_cost);
 	withdrawTokens(Color::red, red_cost);
@@ -3229,8 +3224,8 @@ void RandomPlayer::buyReservedCard(const int index) {
 }
 
 void RandomPlayer::royalCardSelection() {
-	int nb_carte_r_dans_jeu = Game::getGame().getRoyalCards().size();
-	int tmp = rand() % nb_carte_r_dans_jeu;
+	int nb_royal_cards_in_game = Game::getGame().getRoyalCards().size();
+	int tmp = rand() % nb_royal_cards_in_game;
 	obtainRoyalCard(tmp);
 }
 
@@ -3240,33 +3235,33 @@ void RandomPlayer::applyCapacity(const JewelryCard &card,
 		std::optional<Capacity> capa = card.getCapacity();
 		if (capa == Capacity::steal_opponent_pawn) {
 			if (capa == Capacity::steal_opponent_pawn) {
-				cout << "Le RandomPlayer peut voler un pion!\n";
+				cout << "The RandomPlayer can steal a token!\n";
 				if (opponent.getToken().empty()) {
-					cout << "Dommage vous n'avez pas de jeton gemme ou perl!"
+					cout << "Too bad, you don't have any gem or perl token!"
 					     << endl;
 				} else {
-					vector<const Token *> jetons_adversaire =
+					vector<const Token *> opponent_tokens =
 					    opponent.getToken();
 					int choice;
 					do {
-						choice = rand() % jetons_adversaire.size();
-					} while (jetons_adversaire[choice]->getColor() ==
+						choice = rand() % opponent_tokens.size();
+					} while (opponent_tokens[choice]->getColor() ==
 					         Color::gold);
-					cout << "Pion volé :" << *jetons_adversaire[choice] << endl;
-					tokens.push_back(jetons_adversaire[choice]);
+					cout << "Stolen token:" << *opponent_tokens[choice] << endl;
+					tokens.push_back(opponent_tokens[choice]);
 					token_number++;
-					jetons_adversaire.erase(jetons_adversaire.begin() + choice);
-					opponent.setNbJetons(opponent.getTokenNumber() - 1);
+					opponent_tokens.erase(opponent_tokens.begin() + choice);
+					opponent.setNbTokens(opponent.getTokenNumber() - 1);
 				}
 			}
 		} else if (capa == Capacity::take_priviledge) {
-			cout << "Utilisation de capacité : le RandomPlayer gagne un "
-			        "privilège\n";
+			cout << "Capacity usage: the RandomPlayer gains a "
+			        "privilege\n";
 			Game::getGame().getCurrentPlayer().obtainPrivilege();
 		} else if (capa == Capacity::take_on_board) {
-			cout << "Utilisation de capacité : le RandomPlayer peut piocher un "
-			        "jeton de la "
-			        "color bonus de la card\n";
+			cout << "Capacity usage: the RandomPlayer can draw a "
+			        "token of the "
+			        "card's bonus color\n";
 			const optional<enum colorBonus> &color = card.getBonus();
 			if (Board::getBoard().colorsOnBoard(color)) {
 				vector<int> valid_indexes =
@@ -3285,58 +3280,58 @@ void RandomPlayer::applyCapacity(const JewelryCard &card,
 					cout << e.getInfo() << "\n";
 				}
 			} else {
-				cout << "Dommage, il n'y a plus de tokens de cette color sur "
-				        "le "
+				cout << "Too bad, there are no more tokens of this color on "
+				        "the "
 				        "board."
 				     << endl;
 			}
 		} else {
 			Game::getGame().nextRound(1);
-			cout << "Le RandomPlayer rejoue (capacité de la card qu'elle vient "
-			        "d'acheter)!"
+			cout << "The RandomPlayer replays (capacity of the card just "
+			        "bought)!"
 			     << endl;
 		}
 	}
 	if (card.getBonus() == colorBonus::joker) {
-		cout << "Utilisation de capacité : le RandomPlayer transforme le joker "
-		        "en un "
-		        "bonus de "
-		        "color en l'associant à"
-		        " une de vos card dotée d'au moins un bonus.\n";
-		int bonus_blanc = calculateBonus(colorBonus::white);
-		int bonus_bleu = calculateBonus(colorBonus::blue);
-		int bonus_rouge = calculateBonus(colorBonus::red);
-		int bonus_vert = calculateBonus(colorBonus::green);
-		int bonus_noir = calculateBonus(colorBonus::black);
+		cout << "Capacity usage: the RandomPlayer transforms the joker "
+		        "into a "
+		        "color "
+		        "bonus by associating it with"
+		        " one of your cards with at least one bonus.\n";
+		int bonus_white = calculateBonus(colorBonus::white);
+		int bonus_blue = calculateBonus(colorBonus::blue);
+		int bonus_red = calculateBonus(colorBonus::red);
+		int bonus_green = calculateBonus(colorBonus::green);
+		int bonus_black = calculateBonus(colorBonus::black);
 
 		try {
 			vector<int> possible_choices;
 			int option = 0;
-			if (bonus_blanc > 0) {
+			if (bonus_white > 0) {
 				possible_choices.push_back(1);
 				option++;
 			}
-			if (bonus_bleu > 0) {
+			if (bonus_blue > 0) {
 				possible_choices.push_back(2);
 				option++;
 			}
-			if (bonus_rouge > 0) {
+			if (bonus_red > 0) {
 				possible_choices.push_back(3);
 				option++;
 			}
-			if (bonus_vert > 0) {
+			if (bonus_green > 0) {
 				possible_choices.push_back(4);
 				option++;
 			}
-			if (bonus_noir > 0) {
+			if (bonus_black > 0) {
 				possible_choices.push_back(5);
 				option++;
 			}
-			// Vérifiez si aucune option n'est disponible
+			// Check if no option is available
 			if (option == 0) {
 				throw SplendorException(
-				    "vous ne possédez aucune card dotée de bonus.. Capacité"
-				    " sans effet\n");
+				    "you don't own any card with a bonus.. Capacity"
+				    " has no effect\n");
 			} else {
 				std::random_device rd;
 				std::mt19937 gen(rd());
@@ -3368,12 +3363,12 @@ void RandomPlayer::applyCapacity(const JewelryCard &card,
 					card.changeBonusColor(b);
 					break;
 				default:
-					cout << "Choix invalide, veuillez recommencer. Ancien "
-					        "choices : "
+					cout << "Invalid choice, please try again. Previous "
+					        "choice: "
 					     << choices << endl;
 					break;
 				}
-				cout << "Couleur du bonus choisi par le RandomPlayer : "
+				cout << "Bonus color chosen by the RandomPlayer: "
 				     << toString(b) << endl;
 			}
 		} catch (SplendorException &e) {
@@ -3385,33 +3380,33 @@ void RandomPlayer::applyCapacity(const JewelryCard &card,
 void RandomPlayer::applyRoyalCapacity(const RoyalCard &card,
                                       StrategyPlayer &opponent) {
 	if (card.getCapacity().has_value()) {
-		cout << "Application de la capacité de la card royale!" << endl;
+		cout << "Applying the royal card's capacity!" << endl;
 		std::optional<Capacity> capa = card.getCapacity();
 		if (capa == Capacity::steal_opponent_pawn) {
 			if (capa == Capacity::steal_opponent_pawn) {
-				cout << "Le RandomPlayer peut voler un pion!\n";
+				cout << "The RandomPlayer can steal a token!\n";
 				if (opponent.getToken().empty()) {
-					cout << "Dommage vous n'avez pas de jeton gemme ou perl!"
+					cout << "Too bad, you don't have any gem or perl token!"
 					     << endl;
 				} else {
-					vector<const Token *> jetons_adversaire =
+					vector<const Token *> opponent_tokens =
 					    opponent.getToken();
 					int choice;
 					do {
-						choice = rand() % jetons_adversaire.size();
-					} while (jetons_adversaire[choice]->getColor() ==
+						choice = rand() % opponent_tokens.size();
+					} while (opponent_tokens[choice]->getColor() ==
 					         Color::gold);
-					tokens.push_back(jetons_adversaire[choice]);
+					tokens.push_back(opponent_tokens[choice]);
 					token_number++;
-					jetons_adversaire.erase(jetons_adversaire.begin() + choice);
-					opponent.setNbJetons(opponent.getTokenNumber() - 1);
+					opponent_tokens.erase(opponent_tokens.begin() + choice);
+					opponent.setNbTokens(opponent.getTokenNumber() - 1);
 				}
 			}
 		} else if (capa == Capacity::take_priviledge) {
-			cout << "Le RandomPlayer prend un privilège" << endl;
+			cout << "The RandomPlayer takes a privilege" << endl;
 			Game::getGame().getCurrentPlayer().obtainPrivilege();
 		} else {
-			cout << "Le RandomPlayer peut replay" << endl;
+			cout << "The RandomPlayer can replay" << endl;
 			Game::getGame().nextRound(1);
 		}
 	}
@@ -3420,11 +3415,11 @@ void RandomPlayer::applyRoyalCapacity(const RoyalCard &card,
 void RandomPlayer::tokenVerification() {
 	if (token_number > 10) {
 		int nb = token_number - 10;
-		cout << "Le RandomPlayer a trop de tokens, elle doit en remettre " << nb
-		     << " dans le bag." << endl;
-		cout << "Voici ses tokens:" << endl;
+		cout << "The RandomPlayer has too many tokens, it must return " << nb
+		     << " to the bag." << endl;
+		cout << "Here are its tokens:" << endl;
 		for (int i = 0; i < token_number; i++) {
-			cout << "Indice " << i << " : " << *tokens[i] << endl;
+			cout << "Index " << i << " : " << *tokens[i] << endl;
 		}
 		vector<int> tab(0);
 		int i = 0;
@@ -3434,10 +3429,10 @@ void RandomPlayer::tokenVerification() {
 			// cout<<tmp<<endl;
 			bool inTab = 0;
 			for (int j = 0; j < tab.size();
-			     j++) { // vérification qu'on n'a pas déjà essayé de l'enlever
+			     j++) { // check if we haven't already tried to remove it
 				if (tab[j] == tmp) {
 					inTab = 1;
-					cout << "Déjà dans tab" << endl;
+					cout << "Already in tab" << endl;
 				}
 			}
 			if (tmp >= 0 and tmp < token_number and inTab == 0) {
@@ -3445,12 +3440,12 @@ void RandomPlayer::tokenVerification() {
 				curNb--;
 			}
 		}
-		// tri du tableau
+		// sort the array
 		std::make_heap(tab.begin(), tab.end());
 		std::sort_heap(tab.begin(), tab.end());
 		for (int k = tab.size() - 1; k >= 0;
-		     k--) { // suppression de la fin vers le début pour ne pas décaler
-			        // les indices
+		     k--) { // remove from end to start to avoid shifting
+			        // indices
 			Bag::get().insertToken(tokens[tab[k]]);
 			tokens.erase(tokens.begin() + tab[k]);
 			token_number--;
