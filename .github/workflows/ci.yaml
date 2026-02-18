@@ -29,5 +29,5 @@ jobs:
       - name: Compile project
         run: mkdir build && cd build && cmake .. && make
 
-      - name: Run google tests
-        run: ctest -V
+      - name: Run tests
+        run: ./lo21-splendor-duel-tests
