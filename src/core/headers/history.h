@@ -67,7 +67,6 @@ class History {
 			delete match;
 		}
 		matches.clear();
-		delete &handler;
 	}
 
 	History(const History &) = delete;

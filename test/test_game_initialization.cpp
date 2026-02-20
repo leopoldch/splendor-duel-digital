@@ -12,6 +12,8 @@ protected:
 
     static void SetUpTestSuite() {
         game = &Game::getGame();
+        string n1 = "Player1", n2 = "Player2", c1 = "Player", c2 = "Player";
+        game->setPlayers(n1, n2, c1, c2);
     }
 
     static void TearDownTestSuite() {
@@ -54,7 +56,7 @@ TEST_F(GameInitializationTest, CardsAndPrivileges) {
     EXPECT_GT(jewelry_cards.size(), 0);
     EXPECT_LE(jewelry_cards.size(), JewelryCard::getMaxJewelryCard());
 
-    EXPECT_EQ(game->getPrivilegeNumber(), 3);
+    EXPECT_EQ(game->getPrivilegeNumber(), 2); // 1 privilege given to opponent during setPlayers()
 }
 
 TEST_F(GameInitializationTest, BagIsEmpty) {

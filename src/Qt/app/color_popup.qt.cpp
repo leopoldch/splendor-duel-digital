@@ -38,8 +38,8 @@ ColorPopup::ColorPopup(QWidget *parent) : QDialog(parent) {
 }
 
 void ColorPopup::onSubmitClicked() {
-	std::string nb_string = comboBoxNb->currentText().toStdString();
-	std::string colorStr = comboBox->currentText().toStdString();
+	std::string nb_string = comboBoxNb->currentText().toUtf8().constData();
+	std::string colorStr = comboBox->currentText().toUtf8().constData();
 
 	setColor(stringToColor(colorStr));
 	setNb(std::stoi(nb_string));
