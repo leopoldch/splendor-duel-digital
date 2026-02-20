@@ -22,6 +22,8 @@ const bool Game::isFinished() { return is_finished; }
 StrategyPlayer &Game::getPlayerRound() { return *who_plays; }
 
 Game::Game() {
+	who_plays = nullptr;
+	opponent = nullptr;
 	Token::resetCounters();
 
 	Bag::get();

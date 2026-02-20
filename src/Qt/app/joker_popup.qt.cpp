@@ -49,7 +49,7 @@ popupJoker::popupJoker(QWidget *parent) : QDialog(parent) {
 }
 
 void popupJoker::onSubmitClicked() {
-	std::string colorStr = comboBox->currentText().toStdString();
+	std::string colorStr = comboBox->currentText().toUtf8().constData();
 	setColor(stringToBonus(colorStr));
 
 	accept();
