@@ -12,7 +12,7 @@ protected:
 
     static void SetUpTestSuite() {
         game = &Game::getGame();
-        string n1 = "Player1", n2 = "Player2", c1 = "Player", c2 = "Player";
+        std::string n1 = "Player1", n2 = "Player2", c1 = "Player", c2 = "Player";
         game->setPlayers(n1, n2, c1, c2);
     }
 
