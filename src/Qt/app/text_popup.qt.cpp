@@ -40,10 +40,10 @@ InputPopup::InputPopup(QWidget *parent) : QDialog(parent) {
 
 void InputPopup::onSubmitClicked() {
 
-	std::string stdName1 = lineEdit1->text().toStdString();
-	std::string stdName2 = lineEdit2->text().toStdString();
-	std::string stdType1 = comboBox1->currentText().toStdString();
-	std::string stdType2 = comboBox2->currentText().toStdString();
+	std::string stdName1 = lineEdit1->text().toUtf8().constData();
+	std::string stdName2 = lineEdit2->text().toUtf8().constData();
+	std::string stdType1 = comboBox1->currentText().toUtf8().constData();
+	std::string stdType2 = comboBox2->currentText().toUtf8().constData();
 
 	try {
 		game->setPlayers(stdName1, stdName2, stdType1, stdType2);
