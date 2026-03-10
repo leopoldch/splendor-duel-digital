@@ -48,18 +48,28 @@ target_include_directories(lo21-splendor-duel PRIVATE
 
 include(FetchContent)
 
-FetchContent_Declare(nlohmann_json
-  URL https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz
-  DOWNLOAD_EXTRACT_TIMESTAMP TRUE
-)
+find_path(NLOHMANN_JSON_INCLUDE_DIR nlohmann/json.hpp)
 
-FetchContent_Populate(nlohmann_json)
+if(NLOHMANN_JSON_INCLUDE_DIR)
+  add_library(nlohmann_json INTERFACE)
+  add_library(nlohmann_json::nlohmann_json ALIAS nlohmann_json)
+  target_include_directories(nlohmann_json INTERFACE
+    "${NLOHMANN_JSON_INCLUDE_DIR}"
+  )
+else()
+  FetchContent_Declare(nlohmann_json
+    URL https://github.com/nlohmann/json/releases/download/v3.11.3/json.tar.xz
+    DOWNLOAD_EXTRACT_TIMESTAMP TRUE
+  )
 
-add_library(nlohmann_json INTERFACE)
-add_library(nlohmann_json::nlohmann_json ALIAS nlohmann_json)
-target_include_directories(nlohmann_json INTERFACE
-  "${nlohmann_json_SOURCE_DIR}/include"
-)
+  FetchContent_Populate(nlohmann_json)
+
+  add_library(nlohmann_json INTERFACE)
+  add_library(nlohmann_json::nlohmann_json ALIAS nlohmann_json)
+  target_include_directories(nlohmann_json INTERFACE
+    "${nlohmann_json_SOURCE_DIR}/include"
+  )
+endif()
 
 target_link_libraries(lo21-splendor-duel PRIVATE
   Qt6::Widgets

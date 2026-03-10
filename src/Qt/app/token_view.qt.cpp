@@ -3,8 +3,8 @@
 #include <QCoreApplication>
 
 Qt_token::Qt_token(QWidget *parent)
-    : QPushButton(parent), token(nullptr), isClicked(false) {
-	connect(this, SIGNAL(clicked()), this, SLOT(clickedEvent()));
+    : QPushButton(parent), isClicked(false), token(nullptr), index(-1) {
+	connect(this, &QPushButton::clicked, this, &Qt_token::clickedEvent);
 }
 
 void Qt_token::toggleClicked() {

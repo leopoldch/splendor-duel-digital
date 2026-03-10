@@ -5,6 +5,7 @@
 #include "choice_popup.qt.h"
 #include "draws.qt.h"
 #include "tokens.h"
+#include "view_bridge.h"
 #include <QApplication>
 #include <QDesktopServices>
 #include <QDialog>
@@ -22,7 +23,6 @@
 #include "text_popup.qt.h"
 #include "token_view.qt.h"
 #include "yesno_popup.qt.h"
-
 
 class MainWindow : public QMainWindow {
 	Q_OBJECT
@@ -58,8 +58,6 @@ class MainWindow : public QMainWindow {
 	Qt_Draws *draws;
 
 	QLabel *whoPlays;
-
-	Game *game;
 
 	bool buyingCard;
 	bool stealingToken;
@@ -102,8 +100,6 @@ class MainWindow : public QMainWindow {
 	void setStealingToken(bool x) { stealingToken = x; }
 	const bool getStealingToken() { return stealingToken; }
 
-	void updateWhoPlays();
-
 	QEventLoop *getCardWaitLoop() { return &wait_for_action_card; }
 	QEventLoop *getTokenWaitLoop() { return &wait_for_action_token; }
 
@@ -113,29 +109,9 @@ class MainWindow : public QMainWindow {
 	Qt_card *getLastCardClicked() const { return last_card_click; }
 	void setLastCardClick(Qt_card *c) { last_card_click = c; }
 
-	void updateTopScore(int score); // Method to update top score
-	void updateBottomScore(int score); // -- bottom score
-
-	void updateScores() {
-		int s1 = Game::getGame().getCurrentPlayer().getNbPoints();
-		bottomScoreDisplay->display(s1);
-		int s2 = Game::getGame().getOpponent().getNbPoints();
-		topScoreDisplay->display(s2);
-	}
-
-	void askNames() {
-
-		InputPopup *popup = new InputPopup(this);
-		popup->setModal(true);
-		popup->exec();
-	}
-
-	void setTopPlayerName(const QString &name);
-	void setBottomPlayerName(const QString &name);
-
-	void updateBoard();
-	void updateDraws();
-	void updatePrivileges();
+	bool askNames(UiBridge::PlayerSetupData &setup);
+	void render(const UiBridge::MainWindowViewState &state);
+	void applyInteractionState(const UiBridge::InteractionState &state);
 
 	static MainWindow &getMainWindow() {
 		if (handler.instance == nullptr)
@@ -148,15 +124,7 @@ class MainWindow : public QMainWindow {
 		handler.instance = nullptr;
 	}
 
-	void deactivateButtons();
-	void activateTokens();
-	void activateForReserve();
-	void activateForBuy();
-	void activateForRoyalCard();
-
 	Qt_Draws *getDraws() const { return draws; }
-
-	void activateTokenColor(const Color &c);
 
 	void acceptCurrentDialog() {
 		if (current_dialog != nullptr) {
@@ -179,7 +147,7 @@ class MainWindow : public QMainWindow {
 	void YesNo(char *choice, const std::string &string);
 	void fillBoard();
 	void openWebLink();
-	void nextAction(int *tmp, Player *j);
+	void nextAction(int *tmp, int nbChoice);
 	void showInfo(const string &string);
 	void colorChoice(Color *c, int *nb);
 	void colorJoker(colorBonus *b);
@@ -191,7 +159,7 @@ class MainWindow : public QMainWindow {
 	void cardClicked(Qt_card *);
 
   signals:
-	void triggerNextAction(int *tmp, Player *j);
+	void triggerNextAction(int *tmp, int nbChoice);
 	void triggerYesNo(char *choice, const std::string &string = "");
 	void triggerInfo(const string &string);
 	void triggercolorChoice(Color *c, int *nb);

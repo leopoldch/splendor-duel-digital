@@ -1,46 +1,25 @@
 #include "joker_popup.qt.h"
-#include "game.h"
-#include "main_window.qt.h"
 #include <QLabel>
 #include <string>
 
-popupJoker::popupJoker(QWidget *parent) : QDialog(parent) {
+popupJoker::popupJoker(const UiBridge::JokerChoiceViewState &state,
+                       QWidget *parent)
+    : QDialog(parent), c(colorBonus::white) {
 
 	QLabel *typeLabel = new QLabel("Color:", this);
 	comboBox = new QComboBox(this);
 
-	int bonus_white =
-	    Game::getGame().getCurrentPlayer().calculateBonus(colorBonus::white);
-	int bonus_blue =
-	    Game::getGame().getCurrentPlayer().calculateBonus(colorBonus::blue);
-	int bonus_red =
-	    Game::getGame().getCurrentPlayer().calculateBonus(colorBonus::red);
-	int bonus_green =
-	    Game::getGame().getCurrentPlayer().calculateBonus(colorBonus::green);
-	int bonus_black =
-	    Game::getGame().getCurrentPlayer().calculateBonus(colorBonus::black);
-
-	if (bonus_white > 0) {
-		comboBox->addItem("White");
-	}
-	if (bonus_blue > 0) {
-		comboBox->addItem("Blue");
-	}
-	if (bonus_red > 0) {
-		comboBox->addItem("Red");
-	}
-	if (bonus_green > 0) {
-		comboBox->addItem("Green");
-	}
-	if (bonus_black > 0) {
-		comboBox->addItem("Black");
+	for (const auto &option : state.bonuses) {
+		comboBox->addItem(QString::fromStdString(option.label));
 	}
 
 	submitButton = new QPushButton("Submit", this);
+	submitButton->setEnabled(!state.bonuses.empty());
 
 	QVBoxLayout *layout = new QVBoxLayout(this);
 	layout->addWidget(typeLabel);
 	layout->addWidget(comboBox);
+	layout->addWidget(submitButton);
 
 	setWindowTitle("Color choice");
 
@@ -50,6 +29,10 @@ popupJoker::popupJoker(QWidget *parent) : QDialog(parent) {
 
 void popupJoker::onSubmitClicked() {
 	std::string colorStr = comboBox->currentText().toUtf8().constData();
+	if (colorStr.empty()) {
+		reject();
+		return;
+	}
 	setColor(stringToBonus(colorStr));
 
 	accept();

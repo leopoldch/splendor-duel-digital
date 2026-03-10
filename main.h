@@ -6,6 +6,7 @@
 
 #include "history.h"
 #include "main_window.qt.h"
+#include "view_bridge.h"
 #include <QApplication>
 #include <QThread>
 #include <iostream>
@@ -17,7 +18,7 @@ void toJson() {
 	file << s;
 }
 
-void tryOpenHistoryFile(){
+void tryOpenHistoryFile() {
 	const std::string PATH = "../src/history.json";
 	try {
 		std::ifstream file(PATH);
@@ -33,6 +34,11 @@ void tryOpenHistoryFile(){
 	} catch (SplendorException &e) {
 		cout << "Couldn't open file, check if the file is present." << endl;
 	}
+}
+
+void refreshMainWindow() {
+	MainWindow::getMainWindow().render(UiBridge::buildMainWindowViewState());
+	MainWindow::getMainWindow().update();
 }
 
 void gameFromScratch(int argc, char *argv[]) {
@@ -53,23 +59,20 @@ void gameFromScratch(int argc, char *argv[]) {
 	bool check_names = true;
 	while (check_names) {
 		try {
-			MainWindow::getMainWindow().askNames();
+			UiBridge::PlayerSetupData setup;
+			if (!MainWindow::getMainWindow().askNames(setup)) {
+				continue;
+			}
+			UiBridge::applyPlayerSetup(setup);
 			check_names = false;
 		} catch (SplendorException &e) {
 			MainWindow::getMainWindow().triggerInfo(e.getInfo());
 		}
 	}
 
-	MainWindow::getMainWindow().setTopPlayerName(
-	    QString::fromStdString(Game::getGame().getCurrentPlayer().getName()));
-	MainWindow::getMainWindow().setBottomPlayerName(
-	    QString::fromStdString(Game::getGame().getOpponent().getName()));
-
 	// Setup the board
 	Game::getGame().getPlayerRound();
-	MainWindow::getMainWindow().updateBoard();
-	MainWindow::getMainWindow().updateDraws();
-	MainWindow::getMainWindow().updatePrivileges();
+	refreshMainWindow();
 
 	unsigned int from_error = 0;
 
@@ -77,13 +80,7 @@ void gameFromScratch(int argc, char *argv[]) {
 
 		if (from_error == 0) {
 			Game::getGame().getPlayerRound();
-			MainWindow::getMainWindow().setTopPlayerName(QString::fromStdString(
-			    Game::getGame().getOpponent().getName()));
-			MainWindow::getMainWindow().setBottomPlayerName(
-			    QString::fromStdString(
-			        Game::getGame().getCurrentPlayer().getName()));
-			// qDebug() << Game::getGame().getCurrentPlayer().getName();
-			MainWindow::getMainWindow().updateWhoPlays();
+			refreshMainWindow();
 
 			try {
 				toJson();
@@ -106,11 +103,7 @@ void gameFromScratch(int argc, char *argv[]) {
 
 			Game::getGame().nextRound();
 
-			MainWindow::getMainWindow().updateScores();
-			MainWindow::getMainWindow().updateBoard();
-			MainWindow::getMainWindow().updateDraws();
-			MainWindow::getMainWindow().updatePrivileges();
-			MainWindow::getMainWindow().update();
+			refreshMainWindow();
 
 			QCoreApplication::processEvents();
 
@@ -124,11 +117,7 @@ void gameFromScratch(int argc, char *argv[]) {
 		}
 	}
 
-	MainWindow::getMainWindow().updateScores();
-	MainWindow::getMainWindow().updateBoard();
-	MainWindow::getMainWindow().updateDraws();
-	MainWindow::getMainWindow().updatePrivileges();
-	MainWindow::getMainWindow().update();
+	refreshMainWindow();
 
 	cout << "=================== Game over ===================" << endl;
 	cout << "Number of rounds: " << Game::getGame().getRoundCount() << endl;
@@ -209,17 +198,9 @@ void gameFromJson(int argc, char *argv[]) {
 	Qt_Board::getBoard().connectTokens();
 	MainWindow::getMainWindow().getDraws()->connectCards();
 
-	// Setup names
-	MainWindow::getMainWindow().setTopPlayerName(
-	    QString::fromStdString(Game::getGame().getCurrentPlayer().getName()));
-	MainWindow::getMainWindow().setBottomPlayerName(
-	    QString::fromStdString(Game::getGame().getOpponent().getName()));
-
 	// Setup the board
 	Game::getGame().getPlayerRound();
-	MainWindow::getMainWindow().updateBoard();
-	MainWindow::getMainWindow().updateDraws();
-	MainWindow::getMainWindow().updatePrivileges();
+	refreshMainWindow();
 
 	cout << "player cards: " << endl;
 	cout << Game::getGame().getCurrentPlayer().getBoughtCardNumber() << endl;
@@ -237,12 +218,7 @@ void gameFromJson(int argc, char *argv[]) {
 
 		if (from_error == 0) {
 			Game::getGame().getPlayerRound();
-			MainWindow::getMainWindow().setTopPlayerName(QString::fromStdString(
-			    Game::getGame().getOpponent().getName()));
-			MainWindow::getMainWindow().setBottomPlayerName(
-			    QString::fromStdString(
-			        Game::getGame().getCurrentPlayer().getName()));
-			MainWindow::getMainWindow().updateWhoPlays();
+			refreshMainWindow();
 
 			try {
 				toJson();
@@ -263,11 +239,7 @@ void gameFromJson(int argc, char *argv[]) {
 
 			Game::getGame().nextRound();
 
-			MainWindow::getMainWindow().updateScores();
-			MainWindow::getMainWindow().updateBoard();
-			MainWindow::getMainWindow().updateDraws();
-			MainWindow::getMainWindow().updatePrivileges();
-			MainWindow::getMainWindow().update();
+			refreshMainWindow();
 
 			QCoreApplication::processEvents();
 
