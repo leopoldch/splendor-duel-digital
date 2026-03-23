@@ -1,69 +1,232 @@
 #include "main_window.qt.h"
 #include "color_popup.qt.h"
-#include "history.h"
 #include "joker_popup.qt.h"
+#include "view_bridge.h"
 #include <QDialog>
+#include <QGridLayout>
+#include <QHBoxLayout>
 #include <QScrollArea>
-#include <math.h>
-#include <sstream>
+#include <QVBoxLayout>
+#include <array>
+
+namespace {
+
+constexpr auto kBackgroundStyle =
+    "background-image: url('../src/assets/background.jpg'); "
+    "background-position: center;";
+constexpr auto kTransparentStyle = "background: transparent;";
+constexpr auto kWhiteButtonStyle = "color: rgba(255, 255, 255, 255);";
+constexpr auto kWhiteLabelStyle = "QLabel { color: white; }";
+constexpr auto kPlayerBannerStyle =
+    "QLabel { color: white; background-color: white; border: 1px solid "
+    "white; }";
+
+const QSize kRoyalLabelSize(50, 80);
+const QSize kPopupCardSize(75, 105);
+const QSize kPopupTokenSize(60, 60);
+constexpr int kPopupColumns = 4;
+constexpr int kPopupTokenSlots = 16;
+
+template <typename Slot>
+QPushButton *createStyledButton(const QString &text, QWidget *parent,
+                                const QObject *receiver, Slot slot) {
+	auto *button = new QPushButton(text, parent);
+	button->setStyleSheet(kWhiteButtonStyle);
+	QObject::connect(button, &QPushButton::clicked, receiver, slot);
+	return button;
+}
+
+QLabel *createRoyalLabel(QWidget *parent) {
+	auto *label = new QLabel(parent);
+	label->setStyleSheet(kTransparentStyle);
+	label->setFixedSize(kRoyalLabelSize);
+	label->setPixmap(QPixmap());
+	return label;
+}
+
+QLabel *createPlayerBanner(const QString &text, QWidget *parent) {
+	auto *label = new QLabel(text, parent);
+	label->setStyleSheet(kPlayerBannerStyle);
+	return label;
+}
+
+QDialog *createBackgroundDialog(QWidget *parent) {
+	auto *dialog = new QDialog(parent);
+	dialog->setStyleSheet(kBackgroundStyle);
+	return dialog;
+}
+
+void showScrollableTextDialog(QWidget *parent, const std::string &text) {
+	auto *dialog = createBackgroundDialog(parent);
+	QLabel *label = new QLabel(QString::fromStdString(text), dialog);
+	label->setWordWrap(true);
+
+	QScrollArea *scrollArea = new QScrollArea(dialog);
+	scrollArea->setWidgetResizable(true);
+	scrollArea->setWidget(label);
+
+	QVBoxLayout *layout = new QVBoxLayout();
+	layout->addWidget(scrollArea);
+	dialog->setLayout(layout);
+	dialog->exec();
+}
+
+void clearCardButton(Qt_card *card, const QSize &iconSize) {
+	card->setCard(nullptr);
+	card->setIcon(QIcon());
+	card->setIconSize(iconSize);
+}
+
+void updateRoyalLabel(QLabel *label, const std::string &visual) {
+	if (visual.empty()) {
+		label->setPixmap(QPixmap());
+		return;
+	}
+
+	label->setPixmap(QPixmap(QString::fromStdString(visual))
+	                     .scaled(label->size(), Qt::KeepAspectRatio,
+	                             Qt::SmoothTransformation));
+}
+
+void updatePlayerPanel(QLabel *nameLabel, QLCDNumber *scoreDisplay,
+                       QLabel *privilegesLabel, QLabel *firstRoyal,
+                       QLabel *secondRoyal,
+                       const UiBridge::PlayerPanelViewState &player) {
+	nameLabel->setText(QString::fromStdString(player.name));
+	scoreDisplay->display(player.score);
+	privilegesLabel->setText(
+	    "Privileges: " +
+	    QString::fromStdString(std::to_string(player.privilegeCount)));
+	updateRoyalLabel(firstRoyal, player.royalCardVisuals.empty()
+	                                 ? ""
+	                                 : player.royalCardVisuals[0]);
+	updateRoyalLabel(secondRoyal, player.royalCardVisuals.size() < 2
+	                                  ? ""
+	                                  : player.royalCardVisuals[1]);
+}
+
+void updatePrivilegeTokens(Qt_Board *board, int privilegeCount) {
+	std::array<Qt_token *, 3> privilegeTokens = {
+	    board->getPrivilege1(), board->getPrivilege2(), board->getPrivilege3()};
+	QIcon icon(QPixmap(
+	    QString::fromStdString("../src/assets/rest_detoured/Privilege.png")));
+
+	for (int i = 0; i < privilegeTokens.size(); ++i) {
+		privilegeTokens[i]->setIcon(i < privilegeCount ? icon : QIcon());
+		privilegeTokens[i]->setIconSize(privilegeTokens[i]->size());
+		privilegeTokens[i]->update();
+	}
+}
+
+void applyCardSlotState(Qt_card *card, const UiBridge::CardSlotViewState &state,
+                        const QSize &emptyIconSize) {
+	card->setIndice(state.index);
+	card->setReserved(state.reserved);
+	card->setDisabled(!state.enabled);
+	card->setCard(state.card);
+
+	if (state.card != nullptr) {
+		card->updateAppearance();
+	} else if (!state.visual.empty()) {
+		card->updateAppearance(state.visual);
+	} else {
+		clearCardButton(card, emptyIconSize);
+	}
+}
+
+void populateCardsGrid(QDialog *dialog,
+                       const UiBridge::CardCollectionViewState &state) {
+	auto *layout = new QGridLayout(dialog);
+
+	for (int i = 0; i < state.cards.size(); ++i) {
+		Qt_card *card = new Qt_card(dialog);
+		card->setFixedSize(kPopupCardSize);
+		applyCardSlotState(card, state.cards[i], kPopupCardSize);
+		QObject::connect(card, &Qt_card::cardClicked,
+		                 &MainWindow::getMainWindow(),
+		                 &MainWindow::cardClicked);
+		if (state.cards[i].enabled) {
+			QObject::connect(card, &Qt_card::cardClicked, dialog,
+			                 &QDialog::accept);
+		}
+		layout->addWidget(card, i / kPopupColumns, i % kPopupColumns);
+	}
+
+	dialog->setLayout(layout);
+}
+
+void populateTokensGrid(MainWindow *window, QDialog *dialog,
+                        const UiBridge::TokenCollectionViewState &state) {
+	auto *verticalLayout = new QVBoxLayout(dialog);
+
+	auto *name = new QLabel(QString::fromStdString(state.title), dialog);
+	name->setStyleSheet(kWhiteLabelStyle);
+	verticalLayout->addWidget(name, Qt::AlignCenter);
+
+	auto *layout = new QGridLayout(dialog);
+	auto *gridWidget = new QWidget(dialog);
+	gridWidget->setLayout(layout);
+
+	for (int i = 0; i < state.tokens.size(); ++i) {
+		Qt_token *token = new Qt_token(dialog);
+		token->setIndice(state.tokens[i].index);
+		token->setToken(state.tokens[i].token);
+		token->setFixedSize(kPopupTokenSize);
+		token->setStyleSheet("border: 1px solid black;");
+		layout->addWidget(token, i / kPopupColumns, i % kPopupColumns);
+
+		token->setDisabled(!state.tokens[i].enabled);
+		if (state.tokens[i].enabled) {
+			QObject::connect(token, &Qt_token::tokenClicked,
+			                 &MainWindow::getMainWindow(),
+			                 &MainWindow::tokenClicked);
+			if (state.modal) {
+				QObject::connect(token, &Qt_token::tokenClicked, dialog,
+				                 &QDialog::accept);
+			}
+		}
+		token->updateAppearance();
+	}
+
+	for (int i = 0; i < kPopupColumns; ++i) {
+		layout->setRowStretch(i, 0);
+		layout->setColumnStretch(i, 0);
+	}
+
+	verticalLayout->addWidget(gridWidget);
+	dialog->setLayout(verticalLayout);
+	window->setCurrentDialog(dialog);
+}
+
+} // namespace
 
 MainWindow::Handler MainWindow::handler;
 
 MainWindow::MainWindow(QWidget *parent)
-    : QMainWindow(parent), buyingCard(false), current_dialog(nullptr) {
-	QLabel *label = new QLabel(this);
-	QPixmap pixmap("/path/to/your/image.png");
-	label->setPixmap(pixmap);
-	label->show();
-
-	topRoyal1 = new QLabel(this);
-	topRoyal1->setStyleSheet("background: transparent;");
-	topRoyal1->setFixedSize(50, 80);
-	topRoyal1->setPixmap(QPixmap());
-	topRoyal2 = new QLabel(this);
-	topRoyal2->setStyleSheet("background: transparent;");
-	topRoyal2->setFixedSize(50, 80);
-	topRoyal2->setPixmap(QPixmap());
-
-	bottomRoyal1 = new QLabel(this);
-	bottomRoyal1->setStyleSheet("background: transparent;");
-	bottomRoyal1->setFixedSize(50, 80);
-	bottomRoyal1->setPixmap(QPixmap());
-	bottomRoyal2 = new QLabel(this);
-	bottomRoyal2->setStyleSheet("background: transparent;");
-	bottomRoyal2->setFixedSize(50, 80);
-	bottomRoyal2->setPixmap(QPixmap());
+    : QMainWindow(parent), buyingCard(false), stealingToken(false),
+      token_click_index(-1), last_card_click(nullptr), discarding(false),
+      current_dialog(nullptr) {
+	topRoyal1 = createRoyalLabel(this);
+	topRoyal2 = createRoyalLabel(this);
+	bottomRoyal1 = createRoyalLabel(this);
+	bottomRoyal2 = createRoyalLabel(this);
 
 	topPrivileges = new QLabel(this);
-	topPrivileges->setStyleSheet("QLabel { color: white;}");
+	topPrivileges->setStyleSheet(kWhiteLabelStyle);
 	bottomPrivileges = new QLabel(this);
-	bottomPrivileges->setStyleSheet("QLabel { color: white;}");
+	bottomPrivileges->setStyleSheet(kWhiteLabelStyle);
 
-	game = &Game::getGame();
-
-	// Initialize player name labels
-	topPlayerNameLabel = new QLabel("Player 1", this);
-	bottomPlayerNameLabel = new QLabel("Player 2", this);
-	topPlayerNameLabel->setStyleSheet(
-	    "QLabel { color: white; background-color: "
-	    "white; border: 1px solid white; }");
-	bottomPlayerNameLabel->setStyleSheet(
-	    "QLabel { color: white; background-color: white; border: 1px solid "
-	    "white; }");
+	topPlayerNameLabel = createPlayerBanner("Player 1", this);
+	bottomPlayerNameLabel = createPlayerBanner("Player 2", this);
 
 	QWidget *centralWidget = new QWidget(this);
 
-	// Background for the entire window
-	centralWidget->setStyleSheet(
-	    "background-image: url('../src/assets/background.jpg'); background-position: "
-	    "center;");
+	centralWidget->setStyleSheet(kBackgroundStyle);
 
 	QVBoxLayout *mainLayout = new QVBoxLayout(centralWidget);
 	mainLayout->setSpacing(16);
 
-	whoPlays = new QLabel("Current player", this);
-	whoPlays->setStyleSheet("QLabel { color: white; background-color: white; "
-	                       "border: 1px solid white; }");
+	whoPlays = createPlayerBanner("Current player", this);
 	mainLayout->addWidget(whoPlays, 0, Qt::AlignLeft);
 
 	// ######## TOP SCORE AND BUTTONS ########
@@ -98,23 +261,12 @@ MainWindow::MainWindow(QWidget *parent)
 	mainLayout->addLayout(topPlayer);
 
 	// Top buttons (cards and tokens)
-	viewCardsButtonTop = new QPushButton("View bought cards", this);
-	viewTokensButtonTop = new QPushButton("View tokens", this);
-	viewReservedCardsButtonTop = new QPushButton("View reserved cards", this);
-
-	// Make the text white
-	viewCardsButtonTop->setStyleSheet("color: rgba(255, 255, 255, 255);");
-	viewTokensButtonTop->setStyleSheet("color: rgba(255, 255, 255, 255);");
-	viewReservedCardsButtonTop->setStyleSheet(
-	    "color: rgba(255, 255, 255, 255);");
-
-	// Connect to features
-	connect(viewCardsButtonTop, &QPushButton::clicked, this,
-	        &MainWindow::showBoughtCardsTop);
-	connect(viewTokensButtonTop, &QPushButton::clicked, this,
-	        &MainWindow::showTokensTop);
-	connect(viewReservedCardsButtonTop, &QPushButton::clicked, this,
-	        &MainWindow::showReservedCardsTop);
+	viewCardsButtonTop = createStyledButton("View bought cards", this, this,
+	                                        &MainWindow::showBoughtCardsTop);
+	viewTokensButtonTop = createStyledButton("View tokens", this, this,
+	                                         &MainWindow::showTokensTop);
+	viewReservedCardsButtonTop = createStyledButton(
+	    "View reserved cards", this, this, &MainWindow::showReservedCardsTop);
 
 	// Add a layout and put them in it
 	QHBoxLayout *topButtonLayout = new QHBoxLayout(this);
@@ -137,10 +289,9 @@ MainWindow::MainWindow(QWidget *parent)
 	boardLayout->addWidget(board);
 
 	middleLayout->addLayout(
-	    boardLayout); // Add the board and button to the middle layout
+	    boardLayout);           // Add the board and button to the middle layout
 	middleLayout->addStretch(); // Stretch to put the draws to the right
-	draws->setStyleSheet("background-image: url('../src/assets/background.jpg'); "
-	                       "background-position: center;");
+	draws->setStyleSheet(kBackgroundStyle);
 	middleLayout->addWidget(draws);
 	mainLayout->addWidget(middleContainer);
 
@@ -149,19 +300,15 @@ MainWindow::MainWindow(QWidget *parent)
 	QVBoxLayout *rules = new QVBoxLayout;
 
 	// Add rules button
-	QPushButton *viewRules = new QPushButton("View rules", this);
-	QPushButton *viewStats = new QPushButton("History", this);
-	QPushButton *viewStatsPlayers = new QPushButton("Statistics", this);
-	viewRules->setStyleSheet("color: rgba(255, 255, 255, 255);");
+	QPushButton *viewRules =
+	    createStyledButton("View rules", this, this, &MainWindow::openWebLink);
+	QPushButton *viewStats =
+	    createStyledButton("History", this, this, &MainWindow::showStats);
+	QPushButton *viewStatsPlayers = createStyledButton(
+	    "Statistics", this, this, &MainWindow::showStatsPlayers);
 	viewRules->setFixedWidth(397 / 3);
-	viewStats->setStyleSheet("color: rgba(255, 255, 255, 255);");
 	viewStats->setFixedWidth(397 / 3);
-	viewStatsPlayers->setStyleSheet("color: rgba(255, 255, 255, 255);");
 	viewStatsPlayers->setFixedWidth(397 / 3);
-	connect(viewRules, &QPushButton::clicked, this, &MainWindow::openWebLink);
-	connect(viewStats, &QPushButton::clicked, this, &MainWindow::showStats);
-	connect(viewStatsPlayers, &QPushButton::clicked, this,
-	        &MainWindow::showStatsPlayers);
 
 	// Victory conditions and its image
 	QLabel *victoryConditions = new QLabel(this);
@@ -204,21 +351,13 @@ MainWindow::MainWindow(QWidget *parent)
 	mainLayout->addLayout(bottomPlayer);
 
 	// Bottom buttons
-	viewCardsButtonBottom = new QPushButton("View bought cards", this);
-	viewTokensButtonBottom = new QPushButton("View tokens", this);
+	viewCardsButtonBottom = createStyledButton(
+	    "View bought cards", this, this, &MainWindow::showBoughtCardsBottom);
+	viewTokensButtonBottom = createStyledButton("View tokens", this, this,
+	                                            &MainWindow::showTokensBottom);
 	viewReservedCardsButtonBottom =
-	    new QPushButton("View reserved cards", this);
-
-	viewCardsButtonBottom->setStyleSheet("color: rgba(255, 255, 255, 255);");
-	viewTokensButtonBottom->setStyleSheet("color: rgba(255, 255, 255, 255);");
-	viewReservedCardsButtonBottom->setStyleSheet(
-	    "color: rgba(255, 255, 255, 255);");
-	connect(viewCardsButtonBottom, &QPushButton::clicked, this,
-	        &MainWindow::showBoughtCardsBottom);
-	connect(viewTokensButtonBottom, &QPushButton::clicked, this,
-	        &MainWindow::showTokensBottom);
-	connect(viewReservedCardsButtonBottom, &QPushButton::clicked, this,
-	        &MainWindow::showReservedCardsBottom);
+	    createStyledButton("View reserved cards", this, this,
+	                       &MainWindow::showReservedCardsBottom);
 
 	QHBoxLayout *bottomButtonLayout = new QHBoxLayout;
 	bottomButtonLayout->addWidget(viewCardsButtonBottom);
@@ -248,217 +387,60 @@ MainWindow::~MainWindow() {
 	// Nothing
 }
 
+bool MainWindow::askNames(UiBridge::PlayerSetupData &setup) {
+	InputPopup popup(this);
+	popup.setModal(true);
+	if (popup.exec() != QDialog::Accepted) {
+		return false;
+	}
+
+	setup = popup.getPlayerSetupData();
+	return true;
+}
+
 void MainWindow::showTokensBottom() {
-	QDialog *tokensDialog = new QDialog(this);
-	setCurrentDialog(tokensDialog);
-	tokensDialog->setStyleSheet(
-	    "background-image: url('../src/assets/background.jpg'); "
-	    "background-position: center;");
-
-	QVBoxLayout *verticallayout = new QVBoxLayout(tokensDialog);
-
-	QLabel *name = new QLabel(tokensDialog);
-	name->setText(
-	    "Tokens of " +
-	    QString::fromStdString(Game::getGame().getCurrentPlayer().getName()));
-	name->setStyleSheet("QLabel { color: white; }");
-
-	verticallayout->addWidget(name, Qt::AlignCenter);
-
-	QGridLayout *layout = new QGridLayout(tokensDialog);
-	QWidget *gridWidget = new QWidget(tokensDialog);
-
-	gridWidget->setLayout(layout);
-
-	int nb = Game::getGame().getCurrentPlayer().getTokenNumber();
-
-	for (int i = 0; i < 16; i++) {
-		Qt_token *j = new Qt_token(tokensDialog);
-		j->setIndice(i);
-		if (i < nb)
-			j->setToken(Game::getGame().getCurrentPlayer().getToken()[i]);
-		j->setFixedSize(
-		    60, 60); // Width: 100px, Height: 140px based on 1:1.4 aspect ratio
-		j->setStyleSheet("border: 1px solid black;");
-		layout->addWidget(j, i / 4, i % 4);
-		if (getDiscarding() == true)
-			connect(j, &Qt_token::tokenClicked, &MainWindow::getMainWindow(),
-			        &MainWindow::tokenClicked);
-		j->updateAppearance();
-	}
-
-	// Disable stretching and set fixed size for the layout
-	for (int i = 0; i < 4; ++i) {
-		layout->setRowStretch(i, 0);
-		layout->setColumnStretch(i, 0);
-	}
-
-	verticallayout->addWidget(gridWidget);
-	tokensDialog->setLayout(verticallayout);
-
+	QDialog *tokensDialog = createBackgroundDialog(this);
+	populateTokensGrid(
+	    this, tokensDialog,
+	    UiBridge::buildCurrentPlayerTokensViewState(getDiscarding()));
 	tokensDialog->show();
 }
 
 void MainWindow::showReservedCardsBottom() {
-	QDialog *cardsDialog = new QDialog(this);
-	cardsDialog->setStyleSheet(
-	    "background-image: url('../src/assets/background.jpg'); "
-	    "background-position: center;");
-	QGridLayout *layout = new QGridLayout(cardsDialog);
-
-	int nb = Game::getGame().getCurrentPlayer().getReservedCardNumber();
-	for (int i = 0; i < nb; i++) {
-		qDebug() << "RESERVED CARDS";
-		Qt_card *c = new Qt_card(cardsDialog);
-		c->setCard(Game::getGame().getCurrentPlayer().getReservedCards()[i]);
-		c->setFixedSize(75, 105);
-		if (getBuyingCard() == true)
-			c->setDisabled(false);
-		else
-			c->setDisabled(true);
-		c->setIndice(i);
-		c->setReserved(true);
-		connect(c, &Qt_card::cardClicked, &MainWindow::getMainWindow(),
-		        &MainWindow::cardClicked);
-		connect(c, &Qt_card::cardClicked, cardsDialog, &QDialog::accept);
-		layout->addWidget(c, i / 4, i % 4);
-		c->updateAppearance();
-		qDebug() << c->getCard()->getVisual();
-	}
-
-	cardsDialog->setLayout(layout);
+	QDialog *cardsDialog = createBackgroundDialog(this);
+	populateCardsGrid(
+	    cardsDialog,
+	    UiBridge::buildCurrentPlayerReservedCardsViewState(getBuyingCard()));
 	cardsDialog->exec(); // Show it
 }
 
 void MainWindow::showBoughtCardsBottom() {
-	QDialog *cardsDialog = new QDialog(this);
-	cardsDialog->setStyleSheet(
-	    "background-image: url('../src/assets/background.jpg'); "
-	    "background-position: center;");
-	QGridLayout *layout = new QGridLayout(cardsDialog);
-
-	int nb = Game::getGame().getCurrentPlayer().getJewelryCardNumber();
-	for (int i = 0; i < nb; i++) {
-		qDebug() << "BOUGHT CARDS";
-		Qt_card *c = new Qt_card(cardsDialog);
-		c->setCard(Game::getGame().getCurrentPlayer().getBoughtCards()[i]);
-		c->setFixedSize(75, 105);
-		c->setDisabled(true);
-		layout->addWidget(c, i / 4, i % 4);
-		c->updateAppearance();
-		qDebug() << c->getCard()->getVisual();
-	}
-
-	cardsDialog->setLayout(layout);
+	QDialog *cardsDialog = createBackgroundDialog(this);
+	populateCardsGrid(cardsDialog,
+	                  UiBridge::buildCurrentPlayerBoughtCardsViewState());
 	cardsDialog->exec(); // Show it
 }
 
 void MainWindow::showBoughtCardsTop() {
-	QDialog *cardsDialog = new QDialog(this);
-	cardsDialog->setStyleSheet(
-	    "background-image: url('../src/assets/background.jpg'); "
-	    "background-position: center;");
-	QGridLayout *layout = new QGridLayout(cardsDialog);
-
-	int nb = Game::getGame().getOpponent().getJewelryCardNumber();
-	for (int i = 0; i < nb; i++) {
-		qDebug() << "BOUGHT CARDS";
-		Qt_card *c = new Qt_card(cardsDialog);
-		c->setCard(Game::getGame().getOpponent().getBoughtCards()[i]);
-		c->setFixedSize(75, 105);
-		c->setDisabled(true);
-		layout->addWidget(c, i / 4, i % 4);
-		c->updateAppearance();
-		qDebug() << c->getCard()->getVisual();
-	}
-
-	cardsDialog->setLayout(layout);
+	QDialog *cardsDialog = createBackgroundDialog(this);
+	populateCardsGrid(cardsDialog,
+	                  UiBridge::buildOpponentBoughtCardsViewState());
 	cardsDialog->exec(); // Show it
 }
 
 void MainWindow::showTokensTop() {
-	QDialog *tokensDialog = new QDialog(this);
-	tokensDialog->setStyleSheet(
-	    "background-image: url('../src/assets/background.jpg'); "
-	    "background-position: center;");
-	setCurrentDialog(tokensDialog);
-
-	QVBoxLayout *verticallayout = new QVBoxLayout(tokensDialog);
-
-	QLabel *name = new QLabel(tokensDialog);
-	name->setText("Tokens of " + QString::fromStdString(
-	                                 Game::getGame().getOpponent().getName()));
-	name->setStyleSheet("QLabel { color: white; }");
-
-	verticallayout->addWidget(name, Qt::AlignCenter);
-
-	QGridLayout *layout = new QGridLayout(tokensDialog);
-	QWidget *gridWidget = new QWidget(tokensDialog);
-
-	gridWidget->setLayout(layout);
-
-	int nb = Game::getGame().getOpponent().getTokenNumber();
-
-	for (int i = 0; i < 16; i++) {
-		Qt_token *j = new Qt_token(tokensDialog);
-		j->setIndice(i);
-		if (i < nb)
-			j->setToken(Game::getGame().getOpponent().getToken()[i]);
-		j->setFixedSize(60, 60);
-		j->setStyleSheet("border: 1px solid black;");
-		layout->addWidget(j, i / 4, i % 4);
-		j->setDisabled(true);
-		if (i < nb && MainWindow::getMainWindow().getStealingToken() == true &&
-		    Game::getGame().getOpponent().getToken()[i]->getColor() !=
-		        Color::gold) {
-			j->setDisabled(false);
-			connect(j, &Qt_token::tokenClicked, &MainWindow::getMainWindow(),
-			        &MainWindow::tokenClicked);
-			connect(j, &Qt_token::tokenClicked, tokensDialog, &QDialog::accept);
-		}
-		j->updateAppearance();
-	}
-
-	// Disable stretching and set fixed size for the layout
-	for (int i = 0; i < 4; ++i) {
-		layout->setRowStretch(i, 0);
-		layout->setColumnStretch(i, 0);
-	}
-
-	verticallayout->addWidget(gridWidget);
-	tokensDialog->setLayout(verticallayout);
-
+	QDialog *tokensDialog = createBackgroundDialog(this);
+	populateTokensGrid(
+	    this, tokensDialog,
+	    UiBridge::buildOpponentTokensViewState(getStealingToken()));
 	tokensDialog->exec();
 }
 
 void MainWindow::showReservedCardsTop() {
-	QDialog *cardsDialog = new QDialog(this);
-	cardsDialog->setStyleSheet(
-	    "background-image: url('../src/assets/background.jpg'); "
-	    "background-position: center;");
-	QGridLayout *layout = new QGridLayout(cardsDialog);
-
-	int nb = Game::getGame().getOpponent().getReservedCardNumber();
-	for (int i = 0; i < nb; i++) {
-		qDebug() << "RESERVED CARDS";
-		Qt_card *c = new Qt_card(cardsDialog);
-		c->setCard(Game::getGame().getOpponent().getReservedCards()[i]);
-		c->setFixedSize(75, 105);
-		c->setDisabled(true);
-		c->setIndice(i);
-		layout->addWidget(c, i / 4, i % 4);
-		c->updateAppearance();
-		qDebug() << c->getCard()->getVisual();
-	}
-
-	cardsDialog->setLayout(layout);
+	QDialog *cardsDialog = createBackgroundDialog(this);
+	populateCardsGrid(cardsDialog,
+	                  UiBridge::buildOpponentReservedCardsViewState());
 	cardsDialog->exec(); // Show it
-}
-
-void MainWindow::updateTopScore(int score) { topScoreDisplay->display(score); }
-
-void MainWindow::updateBottomScore(int score) {
-	bottomScoreDisplay->display(score);
 }
 
 void MainWindow::fillBoard() {
@@ -470,274 +452,92 @@ void MainWindow::openWebLink() {
 	    QUrl("https://cdn.1j1ju.com/medias/da/39/6a-splendor-duel-regle.pdf"));
 }
 
-void MainWindow::setTopPlayerName(const QString &name) {
-	topPlayerNameLabel->setText(name);
-	topPlayerNameLabel->update();
-}
+void MainWindow::render(const UiBridge::MainWindowViewState &state) {
+	updatePlayerPanel(topPlayerNameLabel, topScoreDisplay, topPrivileges,
+	                  topRoyal1, topRoyal2, state.topPlayer);
+	updatePlayerPanel(bottomPlayerNameLabel, bottomScoreDisplay,
+	                  bottomPrivileges, bottomRoyal1, bottomRoyal2,
+	                  state.bottomPlayer);
+	whoPlays->setText(QString::fromStdString(state.currentTurnLabel));
 
-void MainWindow::setBottomPlayerName(const QString &name) {
-	bottomPlayerNameLabel->setText(name);
-	bottomPlayerNameLabel->update();
-}
-
-void MainWindow::updateDraws() {
-
-	// Update card pointers
-
-	// Draw 1
-	qDebug() << "Draw1";
-	for (int i = 0; i < 5; i++) {
-		draws->getTier1()[i]->setCard(
-		    Game::getGame().getFirstDraw()->getDrawCards()[i]);
-
-		// Update visuals
-		if (i < Game::getGame().getFirstDraw()->getCardsNumber())
-			draws->getTier1()[i]->updateAppearance();
-		else {
-			draws->getTier1()[i]->setIcon(QIcon());
-			draws->getTier1()[i]->setIconSize(this->size());
-		}
-	}
-
-	// Draw 2
-	qDebug() << "Draw2";
-	for (int i = 0; i < 4; i++) {
-		draws->getTier2()[i]->setCard(
-		    Game::getGame().getSecondDraw()->getDrawCards()[i]);
-
-		// Update visuals
-		if (i < Game::getGame().getSecondDraw()->getCardsNumber())
-			draws->getTier2()[i]->updateAppearance();
-		else {
-			draws->getTier2()[i]->setIcon(QIcon());
-			draws->getTier2()[i]->setIconSize(this->size());
-		}
-	}
-
-	// Draw 3
-	qDebug() << "Draw3";
-	for (int i = 0; i < 3; i++) {
-		draws->getTier3()[i]->setCard(
-		    Game::getGame().getThirdDraw()->getDrawCards()[i]);
-
-		// Update visuals
-		if (i < Game::getGame().getThirdDraw()->getCardsNumber())
-			draws->getTier3()[i]->updateAppearance();
-		else {
-			draws->getTier3()[i]->setIcon(QIcon());
-			draws->getTier3()[i]->setIconSize(this->size());
-		}
-	}
-
-	// Royal cards
-	qDebug() << "RoyalCards";
-
-	auto currentRoyalCards = Game::getGame().getRoyalCards(); 
-
-	for (int i = 0; i < 4; i++) {
-		if (i < currentRoyalCards.size()) {
-			draws->getRoyalCards()[i]->setCard(currentRoyalCards[i]);
-			draws->getRoyalCards()[i]->updateAppearance();
-			draws->getRoyalCards()[i]->setEnabled(true);
-		} 
-		else {
-			draws->getRoyalCards()[i]->setCard(nullptr);
-			draws->getRoyalCards()[i]->setIcon(QIcon());
-			draws->getRoyalCards()[i]->setIconSize(this->size());
-			draws->getRoyalCards()[i]->setDisabled(true);
-		}
-	}
-
-	if (draws->getDeck1() != nullptr) {
-		if (!Game::getGame().getDeck(1)->isEmpty())
-			draws->getDeck1()->updateAppearance(
-			    "../src/assets/rest_detoured/Pioche_niveau_1.png");
-		else {
-			draws->getDeck1()->setIcon(QIcon());
-			draws->getDeck1()->setIconSize(this->size());
-			draws->getDeck1()->setDisabled(true);
-		}
-	}
-	if (draws->getDeck2() != nullptr) {
-		if (!Game::getGame().getDeck(2)->isEmpty())
-			draws->getDeck2()->updateAppearance(
-			    "../src/assets/rest_detoured/Pioche_niveau_2.png");
-		else {
-			draws->getDeck2()->setIcon(QIcon());
-			draws->getDeck2()->setIconSize(this->size());
-			draws->getDeck2()->setDisabled(true);
-		}
-	}
-	if (draws->getDeck3() != nullptr) {
-		if (!Game::getGame().getDeck(3)->isEmpty())
-			draws->getDeck3()->updateAppearance(
-			    "../src/assets/rest_detoured/Pioche_niveau_3.png");
-		else {
-			draws->getDeck3()->setIcon(QIcon());
-			draws->getDeck3()->setIconSize(this->size());
-			draws->getDeck3()->setDisabled(true);
-		}
-	}
-
-	// Royal cards and player privileges
-
-	// Top
-	int top_privileges = Game::getGame().getOpponent().getPrivilegeNumber();
-	topPrivileges->setText(
-	    "Privileges: " +
-	    QString::fromStdString(std::to_string(top_privileges)));
-	switch (Game::getGame().getOpponent().getRoyalCardNumber()) {
-	case 0: {
-		topRoyal1->setPixmap(QPixmap());
-		topRoyal2->setPixmap(QPixmap());
-		break;
-	}
-	case 1: {
-		topRoyal1->setPixmap(
-		    QPixmap(QString::fromStdString(Game::getGame()
-		                                       .getOpponent()
-		                                       .getRoyalCards()[0]
-		                                       ->getVisual()))
-		        .scaled(topRoyal1->size(), Qt::KeepAspectRatio,
-		                Qt::SmoothTransformation));
-		topRoyal2->setPixmap(QPixmap());
-		break;
-	}
-	case 2: {
-		topRoyal1->setPixmap(
-		    QPixmap(QString::fromStdString(Game::getGame()
-		                                       .getOpponent()
-		                                       .getRoyalCards()[0]
-		                                       ->getVisual()))
-		        .scaled(topRoyal1->size(), Qt::KeepAspectRatio,
-		                Qt::SmoothTransformation));
-		topRoyal2->setPixmap(
-		    QPixmap(QString::fromStdString(Game::getGame()
-		                                       .getOpponent()
-		                                       .getRoyalCards()[1]
-		                                       ->getVisual()))
-		        .scaled(topRoyal2->size(), Qt::KeepAspectRatio,
-		                Qt::SmoothTransformation));
-		break;
-	}
-	}
-
-	// Bottom
-	int bottom_privileges =
-	    Game::getGame().getCurrentPlayer().getPrivilegeNumber();
-	bottomPrivileges->setText(
-	    "Privileges: " +
-	    QString::fromStdString(std::to_string(bottom_privileges)));
-	switch (Game::getGame().getCurrentPlayer().getRoyalCardNumber()) {
-	case 0: {
-		bottomRoyal1->setPixmap(QPixmap());
-		bottomRoyal2->setPixmap(QPixmap());
-		break;
-	}
-	case 1: {
-		bottomRoyal1->setPixmap(
-		    QPixmap(QString::fromStdString(Game::getGame()
-		                                       .getCurrentPlayer()
-		                                       .getRoyalCards()[0]
-		                                       ->getVisual()))
-		        .scaled(bottomRoyal1->size(), Qt::KeepAspectRatio,
-		                Qt::SmoothTransformation));
-		bottomRoyal2->setPixmap(QPixmap());
-
-		break;
-	}
-	case 2: {
-		bottomRoyal1->setPixmap(
-		    QPixmap(QString::fromStdString(Game::getGame()
-		                                       .getCurrentPlayer()
-		                                       .getRoyalCards()[0]
-		                                       ->getVisual()))
-		        .scaled(bottomRoyal1->size(), Qt::KeepAspectRatio,
-		                Qt::SmoothTransformation));
-		bottomRoyal2->setPixmap(
-		    QPixmap(QString::fromStdString(Game::getGame()
-		                                       .getCurrentPlayer()
-		                                       .getRoyalCards()[1]
-		                                       ->getVisual()))
-		        .scaled(bottomRoyal2->size(), Qt::KeepAspectRatio,
-		                Qt::SmoothTransformation));
-		break;
-	}
-	}
-}
-
-void MainWindow::updateBoard() {
-
-	Board::getBoard().printArray();
-
-	// Update token pointers
-	for (int i = 0; i < NTOKENS; i++) {
-		board->getTokens()[i]->setToken(
-		    Board::getBoard().getBoardCaseByIndex(i));
-	}
-
-	// Update visuals
-	for (int i = 0; i < NTOKENS; i++) {
+	for (int i = 0;
+	     i < board->getTokens().size() && i < state.board.tokens.size(); ++i) {
+		board->getTokens()[i]->setToken(state.board.tokens[i]);
 		board->getTokens()[i]->updateAppearance();
 	}
+	updatePrivilegeTokens(board, state.board.privilegeCount);
+
+	const auto applyDrawState = [&](std::vector<Qt_card *> &widgets,
+	                                const std::vector<const Card *> &cards) {
+		for (int i = 0; i < widgets.size(); ++i) {
+			widgets[i]->setCard(i < cards.size() ? cards[i] : nullptr);
+			if (i < cards.size() && cards[i] != nullptr) {
+				widgets[i]->updateAppearance();
+			} else {
+				clearCardButton(widgets[i], widgets[i]->size());
+				widgets[i]->setDisabled(true);
+			}
+		}
+	};
+
+	applyDrawState(draws->getTier1(), state.draws.tier1Cards);
+	applyDrawState(draws->getTier2(), state.draws.tier2Cards);
+	applyDrawState(draws->getTier3(), state.draws.tier3Cards);
+	applyDrawState(draws->getRoyalCards(), state.draws.royalCards);
+
+	const UiBridge::CardSlotViewState deck1State = {
+	    -1, nullptr,
+	    state.draws.deck1Available ? state.draws.deck1Visual : std::string(),
+	    false, false};
+	const UiBridge::CardSlotViewState deck2State = {
+	    -2, nullptr,
+	    state.draws.deck2Available ? state.draws.deck2Visual : std::string(),
+	    false, false};
+	const UiBridge::CardSlotViewState deck3State = {
+	    -3, nullptr,
+	    state.draws.deck3Available ? state.draws.deck3Visual : std::string(),
+	    false, false};
+
+	applyCardSlotState(draws->getDeck1(), deck1State,
+	                   draws->getDeck1()->size());
+	applyCardSlotState(draws->getDeck2(), deck2State,
+	                   draws->getDeck2()->size());
+	applyCardSlotState(draws->getDeck3(), deck3State,
+	                   draws->getDeck3()->size());
 }
 
-void MainWindow::updatePrivileges() {
-	int privilege_number = Game::getGame().getPrivilegeNumber();
-	QIcon icon(QPixmap(
-	    QString::fromStdString("../src/assets/rest_detoured/Privilege.png")));
-	switch (privilege_number) {
-	case 0:
-		board->getPrivilege1()->setIcon(QIcon());
-		board->getPrivilege1()->setIconSize(board->getPrivilege1()->size());
-		board->getPrivilege2()->setIcon(QIcon());
-		board->getPrivilege2()->setIconSize(board->getPrivilege2()->size());
-		board->getPrivilege3()->setIcon(QIcon());
-		board->getPrivilege3()->setIconSize(board->getPrivilege3()->size());
-		break;
-	case 1:
-		// qDebug() << token->getVisual();
-		board->getPrivilege1()->setIcon(icon);
-		board->getPrivilege1()->setIconSize(board->getPrivilege1()->size());
-		board->getPrivilege2()->setIcon(QIcon());
-		board->getPrivilege2()->setIconSize(board->getPrivilege2()->size());
-		board->getPrivilege3()->setIcon(QIcon());
-		board->getPrivilege3()->setIconSize(board->getPrivilege3()->size());
-		break;
-	case 2:
-		// qDebug() << token->getVisual();
-		board->getPrivilege1()->setIcon(icon);
-		board->getPrivilege1()->setIconSize(board->getPrivilege1()->size());
-		// qDebug() << token->getVisual();
-		board->getPrivilege2()->setIcon(icon);
-		board->getPrivilege2()->setIconSize(board->getPrivilege2()->size());
-		// qDebug() << token->getVisual();
-		board->getPrivilege3()->setIcon(QIcon());
-		board->getPrivilege3()->setIconSize(board->getPrivilege3()->size());
-		break;
-	case 3:
-		// qDebug() << token->getVisual();
-		board->getPrivilege1()->setIcon(icon);
-		board->getPrivilege1()->setIconSize(board->getPrivilege1()->size());
-		// qDebug() << token->getVisual();
-		board->getPrivilege2()->setIcon(icon);
-		board->getPrivilege2()->setIconSize(board->getPrivilege2()->size());
-		// qDebug() << token->getVisual();
-		board->getPrivilege3()->setIcon(icon);
-		board->getPrivilege3()->setIconSize(board->getPrivilege3()->size());
-		break;
+void MainWindow::applyInteractionState(
+    const UiBridge::InteractionState &state) {
+	const auto setIndexesEnabled = [](auto &widgets,
+	                                  const std::vector<int> &indices) {
+		for (auto *widget : widgets) {
+			widget->setEnabled(false);
+		}
+		for (int index : indices) {
+			if (index >= 0 && index < widgets.size()) {
+				widgets[index]->setEnabled(true);
+			}
+		}
+	};
+
+	setIndexesEnabled(board->getTokens(), state.enabledBoardTokens);
+	setIndexesEnabled(draws->getTier1(), state.enabledTier1Cards);
+	setIndexesEnabled(draws->getTier2(), state.enabledTier2Cards);
+	setIndexesEnabled(draws->getTier3(), state.enabledTier3Cards);
+	setIndexesEnabled(draws->getRoyalCards(), state.enabledRoyalCards);
+
+	draws->getDeck1()->setEnabled(state.deck1Enabled);
+	draws->getDeck2()->setEnabled(state.deck2Enabled);
+	draws->getDeck3()->setEnabled(state.deck3Enabled);
+}
+
+void MainWindow::nextAction(int *tmp, int nbChoice) {
+	std::vector<std::pair<int, QString>> options;
+	for (const auto &option : UiBridge::buildChoiceOptions(nbChoice)) {
+		options.push_back({option.value, QString::fromStdString(option.label)});
 	}
-	board->getPrivilege1()->update();
-	board->getPrivilege2()->update();
-	board->getPrivilege3()->update();
-}
 
-void MainWindow::nextAction(int *tmp, Player *j) {
-
-	// qDebug() << "IN NEXT ACTION";
-	int nb_choice = j->getOptionalChoices();
-
-	ChoiceDialog dialog(nb_choice, this);
+	ChoiceDialog dialog(options, this);
 	if (dialog.exec() == QDialog::Accepted) {
 		*tmp = dialog.getUserChoice();
 	}
@@ -782,301 +582,25 @@ void MainWindow::cardClicked(Qt_card *c) {
 	MainWindow::getMainWindow().cardActionDone();
 }
 
-void MainWindow::deactivateButtons() {
-	// Tokens
-	int nbmax = Token::getMaxTokenNumber();
-	for (int i = 0; i < nbmax; i++) {
-		board->getBoard().getTokens()[i]->setEnabled(false);
-	}
-
-	// Draw 1
-	for (int i = 0; i < 5; i++) {
-		getDraws()->getTier1()[i]->setEnabled(false);
-	}
-
-	// Draw 2
-	for (int i = 0; i < 4; i++) {
-		getDraws()->getTier2()[i]->setEnabled(false);
-	}
-
-	// Draw 3
-	for (int i = 0; i < 3; i++) {
-		getDraws()->getTier3()[i]->setEnabled(false);
-	}
-
-	// Royal cards draw
-	for (int i = 0; i < 4; i++) {
-		getDraws()->getRoyalCards()[i]->setEnabled(false);
-	}
-
-	// The 3 decks
-
-	getDraws()->getDeck1()->setEnabled(false);
-	getDraws()->getDeck2()->setEnabled(false);
-	getDraws()->getDeck3()->setEnabled(false);
-
-	// Deactivate reserved cards of both players
-}
-
-void MainWindow::activateTokens() {
-	// Tokens
-	int nbmax = Token::getMaxTokenNumber();
-	for (int i = 0; i < nbmax; i++) {
-		board->getBoard().getTokens()[i]->setEnabled(true);
-	}
-}
-
-void MainWindow::activateForReserve() {
-	// Draw 1
-	for (int i = 0; i < Game::getGame().getFirstDraw()->getDrawCards().size();
-	     i++) {
-		getDraws()->getTier1()[i]->setEnabled(true);
-	}
-
-	// Draw 2
-	for (int i = 0; i < Game::getGame().getSecondDraw()->getDrawCards().size();
-	     i++) {
-		getDraws()->getTier2()[i]->setEnabled(true);
-	}
-
-	for (int i = 0; i < Game::getGame().getThirdDraw()->getDrawCards().size();
-	     i++) {
-		getDraws()->getTier3()[i]->setEnabled(true);
-	}
-
-	// The 3 decks
-
-	if (!Game::getGame().getDeck(1)->isEmpty())
-		getDraws()->getDeck1()->setEnabled(true);
-	if (!Game::getGame().getDeck(2)->isEmpty())
-		getDraws()->getDeck2()->setEnabled(true);
-	if (!Game::getGame().getDeck(3)->isEmpty())
-		getDraws()->getDeck3()->setEnabled(true);
-}
-
-void MainWindow::activateForBuy() {
-	qDebug() << "ACtiate for buy";
-	// Draw 1
-	for (int i = 0; i < Game::getGame().getFirstDraw()->getDrawCards().size();
-	     i++) {
-		getDraws()->getTier1()[i]->setEnabled(true);
-	}
-
-	// Draw 2
-	for (int i = 0; i < Game::getGame().getSecondDraw()->getDrawCards().size();
-	     i++) {
-		getDraws()->getTier2()[i]->setEnabled(true);
-	}
-
-	// Draw 3
-	for (int i = 0; i < Game::getGame().getThirdDraw()->getDrawCards().size();
-	     i++) {
-		getDraws()->getTier3()[i]->setEnabled(true);
-	}
-
-	// Reserved cards of the player in question activated in the popup constructor
-}
-
-void MainWindow::activateForRoyalCard() {
-	// Only non-null card buttons are activated!!! to verify!!!
-
-	for (int i = 0; i < Game::getGame().getRoyalCards().size(); i++) {
-		getDraws()->getRoyalCards()[i]->setEnabled(true);
-	}
-}
-
-void MainWindow::updateWhoPlays() {
-	whoPlays->setText(
-	    QString::fromStdString("It's " +
-	                           Game::getGame().getCurrentPlayer().getName()) +
-	    "'s turn");
-}
-
 void MainWindow::colorChoice(Color *c, int *nb) {
-	// Create the color choice window and get c and nb
-	ColorPopup dialog(this);
+	ColorPopup dialog(UiBridge::buildColorChoiceViewState(), this);
 	if (dialog.exec() == QDialog::Accepted) {
 		*c = dialog.getColor();
 		*nb = dialog.getNb();
 	}
 }
 
-void MainWindow::activateTokenColor(const Color &c) {
-	// Tokens
-	int nbmax = Token::getMaxTokenNumber();
-	for (int i = 0; i < nbmax; i++) {
-		if (board->getBoard().getTokens()[i]->getToken() != nullptr &&
-		    board->getBoard().getTokens()[i]->getToken()->getColor() == c)
-			board->getBoard().getTokens()[i]->setEnabled(true);
-	}
-}
-
 void MainWindow::colorJoker(colorBonus *b) {
-	// Create the color choice window and get c and nb
-	popupJoker dialog(this);
+	popupJoker dialog(UiBridge::buildJokerChoiceViewState(), this);
 	if (dialog.exec() == QDialog::Accepted) {
 		*b = dialog.getColor();
 	}
 }
 
 void MainWindow::showStats() {
-	QDialog *dialog = new QDialog(this); // Create a new QDialog instance
-
-	vector<Match *> matches = History::getHistory().getMatches();
-	std::string txt = "";
-	if (matches.size() != 0) {
-		txt += "Match history: ";
-		txt += "\n\n";
-
-		for (int i = 0; i < matches.size(); i++) {
-			txt += "\n";
-			txt += "   Match ";
-			txt += std::to_string(i + 1);
-			txt += "    ||    Score : ";
-			txt += std::to_string(matches[i]->getScoreWinner());
-			txt += " - ";
-			txt += std::to_string(matches[i]->getScoreOpponent());
-			txt += "\n";
-			txt += "      Winning player:    ";
-			txt += matches[i]->getWinner()->getName();
-			txt += "\n";
-			txt += "      Losing player:    ";
-			txt += matches[i]->getOpponent()->getName();
-			txt += "\n";
-		}
-	} else {
-		txt += "No matches in history!";
-	}
-
-	QLabel *text = new QLabel(QString::fromStdString(txt));
-	text->setWordWrap(true);
-
-	// Create a QScrollArea
-	QScrollArea *scrollArea = new QScrollArea(this);
-	scrollArea->setWidgetResizable(true);
-	scrollArea->setWidget(text);
-
-	QVBoxLayout *layout =
-	    new QVBoxLayout(); // Use QVBoxLayout or another specific layout class
-	layout->addWidget(scrollArea);
-
-	dialog->setLayout(layout); // Set layout to the dialog
-
-	dialog->exec();
-}
-
-const bool inside(const std::string s, vector<std::string> vect) {
-	for (int i = 0; i < vect.size(); ++i) {
-		if (vect[i] == s) {
-			return true;
-		}
-	}
-	return false;
-}
-
-template <typename T>
-std::string to_string_with_precision(const T a_value, const int n = 6) {
-	std::ostringstream out;
-	out.precision(n);
-	out << std::fixed << a_value;
-	return out.str();
+	showScrollableTextDialog(this, UiBridge::buildMatchHistoryText());
 }
 
 void MainWindow::showStatsPlayers() {
-
-	QDialog *dialog = new QDialog(this); // Create a new QDialog instance
-
-	vector<Match *> matches = History::getHistory().getMatches();
-	vector<std::string> names;
-
-	std::string txt = "";
-	if (matches.size() != 0) {
-		txt += "Number of games played:  ";
-		txt += to_string(matches.size());
-		txt += "\n";
-
-		txt += "Average points to win: ";
-		float winner_points = 0, loser_points = 0;
-		for (int i = 0; i < matches.size(); ++i) {
-			winner_points += (float)matches[i]->getScoreWinner();
-			loser_points += (float)matches[i]->getScoreOpponent();
-		}
-		winner_points = winner_points / matches.size();
-		loser_points = loser_points / matches.size();
-		txt += to_string_with_precision(winner_points, 2);
-		txt += "\n";
-		txt += "Average loser points: ";
-		txt += to_string_with_precision(loser_points, 2);
-		txt += "\n";
-
-		txt += "\n\n";
-
-		txt += "Player statistics  ";
-		txt += "\n\n";
-		txt += "Total number of players: ";
-		txt += std::to_string(History::getHistory().getNbPlayers());
-		txt += "\n";
-		for (int i = 0; i < matches.size(); i++) {
-			// here for the statistics if we haven't already added the person
-			// i.e. if their name is not yet in the array
-
-			if (!inside(matches[i]->getWinner()->getName(), names)) {
-				// then display the player's stats
-				txt += "\n";
-				txt += "  Player : ";
-				txt += matches[i]->getWinner()->getName();
-				txt += "\n";
-				txt += "    Number of matches played: ";
-				txt += std::to_string(matches[i]->getWinner()->getPlayed());
-				txt += "\n";
-				txt += "    Number of matches won: ";
-				txt += std::to_string(matches[i]->getWinner()->getWins());
-				float avg = (float)(matches[i]->getWinner()->getWins()) /
-				            (float)(matches[i]->getWinner()->getPlayed());
-				txt += " -    Win percentage: ";
-				txt += to_string_with_precision(avg * 100, 2);
-				txt += "%";
-				txt += "\n";
-				names.push_back(matches[i]->getWinner()->getName());
-			}
-
-			if (!inside(matches[i]->getOpponent()->getName(), names)) {
-				// then display the player's stats
-				txt += "\n";
-				txt += "  Player : ";
-				txt += matches[i]->getOpponent()->getName();
-				txt += "\n";
-				txt += "    Number of matches played: ";
-				txt += std::to_string(matches[i]->getOpponent()->getPlayed());
-				txt += "\n";
-				txt += "    Number of matches won: ";
-				txt += std::to_string(matches[i]->getOpponent()->getWins());
-				float avg = (float)(matches[i]->getOpponent()->getWins()) /
-				            (float)(matches[i]->getOpponent()->getPlayed());
-				txt += " -    Win percentage: ";
-				txt += to_string_with_precision(avg * 100, 2);
-				txt += "%";
-				txt += "\n";
-				names.push_back(matches[i]->getOpponent()->getName());
-			}
-		}
-	} else {
-		txt += "No player statistics";
-	}
-
-	QLabel *text = new QLabel(QString::fromStdString(txt));
-	text->setWordWrap(true);
-
-	// Create a QScrollArea
-	QScrollArea *scrollArea = new QScrollArea(this);
-	scrollArea->setWidgetResizable(true);
-	scrollArea->setWidget(text);
-
-	QVBoxLayout *layout =
-	    new QVBoxLayout(); // Use QVBoxLayout or another specific layout class
-	layout->addWidget(scrollArea);
-
-	dialog->setLayout(layout); // Set layout to the dialog
-
-	dialog->exec();
+	showScrollableTextDialog(this, UiBridge::buildPlayerStatisticsText());
 }

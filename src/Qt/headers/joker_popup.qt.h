@@ -2,7 +2,7 @@
 #define QT_POPUP_JOKER_H
 
 #include "card.h"
-#include "game.h"
+#include "view_bridge.h"
 #include <QComboBox>
 #include <QDialog>
 #include <QLineEdit>
@@ -13,7 +13,8 @@ class popupJoker : public QDialog {
 	Q_OBJECT
 
   public:
-	explicit popupJoker(QWidget *parent = nullptr);
+	explicit popupJoker(const UiBridge::JokerChoiceViewState &state,
+	                    QWidget *parent = nullptr);
 
 	const colorBonus getColor() const { return c; }
 	void setColor(const colorBonus &bonus) { c = bonus; }

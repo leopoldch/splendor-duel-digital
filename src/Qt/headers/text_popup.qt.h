@@ -1,7 +1,7 @@
 #ifndef POPUP_TEXT_H
 #define POPUP_TEXT_H
 
-#include "game.h"
+#include "view_bridge.h"
 #include <QComboBox>
 #include <QDialog>
 #include <QLineEdit>
@@ -13,6 +13,7 @@ class InputPopup : public QDialog {
 
   public:
 	explicit InputPopup(QWidget *parent = nullptr);
+	UiBridge::PlayerSetupData getPlayerSetupData() const;
 
   signals:
 	void inputSubmitted(const QString &input);
@@ -28,7 +29,6 @@ class InputPopup : public QDialog {
 	QComboBox *comboBox2;
 
 	QPushButton *submitButton;
-	Game *game;
 };
 
 #endif // POPUP_TEXT_H

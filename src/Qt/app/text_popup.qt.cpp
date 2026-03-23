@@ -1,11 +1,7 @@
 #include "text_popup.qt.h"
-#include "game.h"
-#include "main_window.qt.h"
 #include <QLabel>
 
 InputPopup::InputPopup(QWidget *parent) : QDialog(parent) {
-
-	game = &Game::getGame();
 	QLabel *nameLabel1 = new QLabel("Player 1 Name:", this);
 	lineEdit1 = new QLineEdit(this);
 	QLabel *nameLabel2 = new QLabel("Player 2 Name:", this);
@@ -38,18 +34,11 @@ InputPopup::InputPopup(QWidget *parent) : QDialog(parent) {
 	        &InputPopup::onSubmitClicked);
 }
 
-void InputPopup::onSubmitClicked() {
+void InputPopup::onSubmitClicked() { accept(); }
 
-	std::string stdName1 = lineEdit1->text().toUtf8().constData();
-	std::string stdName2 = lineEdit2->text().toUtf8().constData();
-	std::string stdType1 = comboBox1->currentText().toUtf8().constData();
-	std::string stdType2 = comboBox2->currentText().toUtf8().constData();
-
-	try {
-		game->setPlayers(stdName1, stdName2, stdType1, stdType2);
-		accept();
-	} catch (SplendorException &except) {
-		MainWindow::getMainWindow().triggerInfo(
-		    "please fill in both fields correctly");
-	}
+UiBridge::PlayerSetupData InputPopup::getPlayerSetupData() const {
+	return {lineEdit1->text().toUtf8().constData(),
+	        lineEdit2->text().toUtf8().constData(),
+	        comboBox1->currentText().toUtf8().constData(),
+	        comboBox2->currentText().toUtf8().constData()};
 }

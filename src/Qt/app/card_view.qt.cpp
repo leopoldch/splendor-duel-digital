@@ -2,8 +2,9 @@
 #include <QDebug>
 
 Qt_card::Qt_card(QWidget *parent)
-    : QPushButton(parent), isClicked(false), card(nullptr) {
-	connect(this, SIGNAL(clicked()), this, SLOT(clickedEvent()));
+    : QPushButton(parent), isClicked(false), card(nullptr), index_in_draw(-1),
+      is_reserved(false) {
+	connect(this, &QPushButton::clicked, this, &Qt_card::clickedEvent);
 }
 
 void Qt_card::paintEvent(QPaintEvent *event) {
@@ -25,12 +26,9 @@ void Qt_card::updateAppearance() {
 		QIcon icon(QPixmap(QString::fromStdString(card->getVisual())));
 		this->setIcon(icon);
 		this->setIconSize(this->size());
-	}
-
-	else {
+	} else {
 		this->setIcon(QIcon());
 		this->setIconSize(this->size());
-		qDebug() << "prblm";
 	}
 }
 

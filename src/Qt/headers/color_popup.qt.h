@@ -2,7 +2,7 @@
 #define QT_POPUP_COLOR_H
 
 #include "card.h"
-#include "game.h"
+#include "view_bridge.h"
 #include <QComboBox>
 #include <QDialog>
 #include <QLineEdit>
@@ -13,7 +13,8 @@ class ColorPopup : public QDialog {
 	Q_OBJECT
 
   public:
-	explicit ColorPopup(QWidget *parent = nullptr);
+	explicit ColorPopup(const UiBridge::ColorChoiceViewState &state,
+	                    QWidget *parent = nullptr);
 
 	const int getNb() const { return nb; }
 	const Color getColor() const { return c; }
